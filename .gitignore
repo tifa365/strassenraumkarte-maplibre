@@ -1,0 +1,32 @@
+# Generated artefacts
+data/osm/*.osm.pbf
+data/osm/*.pbf
+data/parking/**
+!data/parking/.gitkeep
+render/tiles/**
+!render/tiles/.gitkeep
+!render/tiles/preview.html
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# QGIS backups / working copies
+*.qgz.bak*
+style/*.qgz.bak*
+*.bak
+style/.*_work/
+
+# Local backups / editor
+backup/
+.cursor/
+
+# Local / env
+data/.venv/
+.pgpass
+
+# Local notes / legacy (not for remote)
+TODO.txt
+todo_from_post_processing.py
+style/lanes.qgz

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="61.047401"
+   height="49.280003"
+   viewBox="0 0 61.047402 49.280003"
+   sodipodi:docname="viewpoint.svg"
+   inkscape:version="1.3.1 (9b9bdc1480, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:zoom="11.313709"
+     inkscape:cx="25.897786"
+     inkscape:cy="23.555495"
+     inkscape:window-width="1920"
+     inkscape:window-height="1048"
+     inkscape:window-x="1920"
+     inkscape:window-y="-5"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g1" />
+  <g
+     inkscape:groupmode="layer"
+     inkscape:label="Image"
+     id="g1"
+     transform="translate(5.883701,-5.95271)">
+    <path
+       style="fill:#808080;fill-opacity:1"
+       d="M 26.387484,38.031978 24.756733,37.900014 22.741716,38.058521 20.248075,5.95271 h 8.701381 z M 17.559207,40.455975 2.5706224,19.105859 9.869189,14.956057 20.844296,38.56287 19.298695,39.273575 Z m -3.297649,4.648076 -20.145259,-8.911507 4.1726776,-7.448115 17.8797254,13.110673 -1.129273,1.598688 z"
+       id="path1"
+       sodipodi:nodetypes="cccccccccccccccccc" />
+    <circle
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:107.611"
+       id="path2"
+       cx="-48.982712"
+       cy="24.650999"
+       r="6.25"
+       transform="rotate(-90)" />
+    <path
+       d="M 31.720793,40.455635 46.709378,19.105519 39.410811,14.955717 28.435704,38.56253 l 1.545601,0.710705 z m 3.297649,4.648075 20.145259,-8.911506 -4.172678,-7.448115 -17.879725,13.110673 1.129273,1.598688 z"
+       style="fill:#808080;fill-opacity:1"
+       id="path1-1" />
+  </g>
+</svg>

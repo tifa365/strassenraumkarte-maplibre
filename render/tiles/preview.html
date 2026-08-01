@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Straßenraumkarte</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html, body, #map { height: 100%; margin: 0; }
+    body { background: #ededed; }
+    .leaflet-container { background: #ededed; font: 14px/1.4 system-ui, sans-serif; }
+    .srk-panel {
+      background: rgba(255, 255, 255, 0.92);
+      border: none;
+      border-radius: 4px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+      padding: 8px 10px;
+      color: #222;
+      line-height: 1.35;
+    }
+    .srk-zoom {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      min-width: 4.5em;
+    }
+    .srk-meta label,
+    .srk-run label.srk-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.45em;
+      cursor: pointer;
+      user-select: none;
+      margin: 0;
+      font-weight: normal;
+    }
+    .srk-meta label { max-width: 18rem; }
+    .srk-meta input[type="checkbox"],
+    .srk-run input[type="checkbox"] { margin: 0.15em 0 0; flex-shrink: 0; }
+    .srk-meta .srk-meta-params {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45em 0.75em;
+      margin-top: 0.45em;
+      align-items: center;
+      font-size: 12px;
+    }
+    .srk-meta .srk-meta-params label {
+      align-items: center;
+      max-width: none;
+      gap: 0.3em;
+    }
+    .srk-meta input[type="number"] {
+      font: inherit;
+      width: 3.5em;
+      padding: 0.2em 0.3em;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      background: #fff;
+      color: #222;
+    }
+
+    .srk-run {
+      width: min(22rem, calc(100vw - 2rem));
+      max-height: calc(100vh - 2rem);
+      overflow: auto;
+      font-size: 13px;
+    }
+    .srk-run h2 {
+      margin: 0 0 0.5em;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    .srk-run .srk-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35em;
+      align-items: center;
+      margin-bottom: 0.55em;
+    }
+    .srk-run .srk-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2em;
+      margin-bottom: 0.55em;
+    }
+    .srk-run .srk-field > span,
+    .srk-run .srk-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #555;
+    }
+    .srk-run select,
+    .srk-run input[type="text"],
+    .srk-run input[type="number"] {
+      font: inherit;
+      padding: 0.3em 0.45em;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      background: #fff;
+      color: #222;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .srk-run input[type="number"] { width: 4.5em; }
+    .srk-run button {
+      font: inherit;
+      padding: 0.35em 0.65em;
+      border: 1px solid #888;
+      border-radius: 3px;
+      background: #f4f4f4;
+      color: #222;
+      cursor: pointer;
+    }
+    .srk-run button:hover { background: #ebebeb; }
+    .srk-run button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    .srk-run button.srk-primary {
+      background: #2a2a2a;
+      border-color: #2a2a2a;
+      color: #fff;
+    }
+    .srk-run button.srk-primary:hover { background: #111; }
+    .srk-run button.srk-danger {
+      background: #fff;
+      border-color: #a44;
+      color: #a44;
+    }
+    .srk-run button.srk-active {
+      background: #dfe9f5;
+      border-color: #4a7ab0;
+    }
+    .srk-bbox {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      word-break: break-all;
+      background: #f6f6f6;
+      border-radius: 3px;
+      padding: 0.35em 0.45em;
+      color: #333;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .srk-bbox.srk-invalid { border-color: #a44; background: #fff5f5; }
+    .srk-run .srk-radios {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35em;
+      margin-bottom: 0.35em;
+    }
+    .srk-run .srk-radios label {
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+      cursor: pointer;
+      margin: 0;
+      font-weight: normal;
+    }
+    .srk-run .srk-opts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75em 1em;
+      margin-bottom: 0.55em;
+    }
+    .srk-run .srk-zoom-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75em 1em;
+      align-items: center;
+      margin-bottom: 0.55em;
+      font-size: 12px;
+    }
+    .srk-run .srk-zoom-row label {
+      display: flex;
+      align-items: center;
+      gap: 0.35em;
+      margin: 0;
+      font-weight: normal;
+    }
+    .srk-log {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      line-height: 1.35;
+      background: #1e1e1e;
+      color: #d6d6d6;
+      border-radius: 3px;
+      padding: 0.5em;
+      max-height: 12rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-top: 0.35em;
+    }
+    .srk-status {
+      font-size: 12px;
+      color: #444;
+      margin-bottom: 0.35em;
+    }
+    .srk-status.srk-running { color: #1a5f2a; }
+    .srk-status.srk-error { color: #a22; }
+    .srk-hint {
+      font-size: 11px;
+      color: #666;
+      margin: 0 0 0.55em;
+    }
+    .srk-api-warn {
+      background: #fff3cd;
+      border: 1px solid #e0c36a;
+      border-radius: 3px;
+      padding: 0.45em 0.55em;
+      margin-bottom: 0.55em;
+      font-size: 12px;
+      color: #5c4800;
+    }
+    .leaflet-container.srk-drawing {
+      cursor: crosshair !important;
+    }
+    .srk-handle {
+      background: #fff;
+      border: 2px solid #c45c26;
+      border-radius: 50%;
+      width: 12px !important;
+      height: 12px !important;
+      margin-left: -6px !important;
+      margin-top: -6px !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    }
+    .srk-handle-n, .srk-handle-s { cursor: ns-resize; }
+    .srk-handle-e, .srk-handle-w { cursor: ew-resize; }
+    .srk-handle-ne, .srk-handle-sw { cursor: nesw-resize; }
+    .srk-handle-nw, .srk-handle-se { cursor: nwse-resize; }
+  </style>
+</head>
+<body>
+  <!--
+    Mit API (BBOX → run.sh, lokale PBFs):
+      ./render/preview_server.py
+    dann http://127.0.0.1:8000/preview.html
+
+    Nur Kacheln ansehen:
+      cd render/tiles && python3 -m http.server 8000
+  -->
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Match render defaults (render_tiles.sh / xyz_tiles.py)
+    let metatileSize = 8;
+    let gutterSize = 1;
+    const TILE_PX = 256;
+    const MIN_BBOX_DELTA = 1e-7;
+
+    const PIPELINE_PRESETS = [
+      {
+        id: "neukoelln",
+        label: "Neukölln",
+        bbox: "13.3924,52.4543,13.4859,52.5009",
+        data: "https://download.geofabrik.de/europe/germany/berlin-latest.osm.pbf",
+      },
+    ];
+
+    const GEOFABRIK_PRESETS = [
+      {
+        label: "Berlin",
+        url: "https://download.geofabrik.de/europe/germany/berlin-latest.osm.pbf",
+      },
+      {
+        label: "Brandenburg",
+        url: "https://download.geofabrik.de/europe/germany/brandenburg-latest.osm.pbf",
+      },
+      {
+        label: "Hamburg",
+        url: "https://download.geofabrik.de/europe/germany/hamburg-latest.osm.pbf",
+      },
+      {
+        label: "Bremen",
+        url: "https://download.geofabrik.de/europe/germany/bremen-latest.osm.pbf",
+      },
+      {
+        label: "Sachsen",
+        url: "https://download.geofabrik.de/europe/germany/sachsen-latest.osm.pbf",
+      },
+      {
+        label: "Nordrhein-Westfalen",
+        url: "https://download.geofabrik.de/europe/germany/nordrhein-westfalen-latest.osm.pbf",
+      },
+      {
+        label: "Bayern",
+        url: "https://download.geofabrik.de/europe/germany/bayern-latest.osm.pbf",
+      },
+      {
+        label: "Baden-Württemberg",
+        url: "https://download.geofabrik.de/europe/germany/baden-wuerttemberg-latest.osm.pbf",
+      },
+      {
+        label: "Deutschland (groß)",
+        url: "https://download.geofabrik.de/europe/germany-latest.osm.pbf",
+      },
+    ];
+
+    const map = L.map("map", {
+      center: [52.4675, 13.4336],
+      zoom: 17,
+      minZoom: 10,
+      maxZoom: 20,
+    });
+
+    const osmLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      minZoom: 10,
+      maxZoom: 20,
+      maxNativeZoom: 19,
+      tileSize: TILE_PX,
+      opacity: 0.85,
+      attribution: "© OpenStreetMap",
+      zIndex: 100,
+    });
+
+    let tileFormat = "jpg";
+    const streetLayer = L.tileLayer("{z}/{x}/{y}." + tileFormat, {
+      minZoom: 15,
+      maxZoom: 20,
+      maxNativeZoom: 20,
+      tileSize: TILE_PX,
+      attribution: "Straßenraumkarte · © OpenStreetMap",
+      zIndex: 200,
+    }).addTo(map);
+
+    function setTileFormat(fmt) {
+      tileFormat = fmt === "png" ? "png" : "jpg";
+      streetLayer.setUrl("{z}/{x}/{y}." + tileFormat);
+      const sel = document.getElementById("srk-view-format");
+      if (sel && sel.value !== tileFormat) sel.value = tileFormat;
+    }
+
+    async function syncTileFormatFromServer() {
+      try {
+        const res = await fetch("/api/tiles/info");
+        if (!res.ok) return;
+        const info = await res.json();
+        if (!info || !info.suggested) return;
+        setTileFormat(info.suggested);
+      } catch (_) {
+        /* preview opened without preview_server */
+      }
+    }
+
+    syncTileFormatFromServer();
+
+    /** True if (tx,ty) lies in some metatile's gutter ring (render-only, not core). */
+    function isGutterTile(tx, ty, z) {
+      const m = metatileSize;
+      const g = gutterSize;
+      if (g < 1 || m < 1) return false;
+      const n = Math.pow(2, z);
+      const bx = Math.floor(tx / m) * m;
+      const by = Math.floor(ty / m) * m;
+      for (let gx = bx - m; gx <= bx + m; gx += m) {
+        for (let gy = by - m; gy <= by + m; gy += m) {
+          if (gx < 0 || gy < 0 || gx >= n || gy >= n) continue;
+          const x0 = gx;
+          const x1 = gx + m - 1;
+          const y0 = gy;
+          const y1 = gy + m - 1;
+          const rx0 = Math.max(0, x0 - g);
+          const rx1 = Math.min(n - 1, x1 + g);
+          const ry0 = Math.max(0, y0 - g);
+          const ry1 = Math.min(n - 1, y1 + g);
+          const inRender =
+            tx >= rx0 && tx <= rx1 && ty >= ry0 && ty <= ry1;
+          const inCore =
+            tx >= x0 && tx <= x1 && ty >= y0 && ty <= y1;
+          if (inRender && !inCore) return true;
+        }
+      }
+      return false;
+    }
+
+    const MetatileDebugLayer = L.GridLayer.extend({
+      createTile: function (coords) {
+        const canvas = document.createElement("canvas");
+        canvas.width = TILE_PX;
+        canvas.height = TILE_PX;
+        const ctx = canvas.getContext("2d");
+        const tx = coords.x;
+        const ty = coords.y;
+        const z = coords.z;
+
+        if (isGutterTile(tx, ty, z)) {
+          ctx.fillStyle = "rgba(80, 80, 80, 0.35)";
+          ctx.fillRect(0, 0, TILE_PX, TILE_PX);
+        }
+
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(0.5, 0.5, TILE_PX - 1, TILE_PX - 1);
+
+        const m = metatileSize;
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        if (tx % m === 0) {
+          ctx.moveTo(0.5, 0);
+          ctx.lineTo(0.5, TILE_PX);
+        }
+        if (tx % m === m - 1) {
+          ctx.moveTo(TILE_PX - 0.5, 0);
+          ctx.lineTo(TILE_PX - 0.5, TILE_PX);
+        }
+        if (ty % m === 0) {
+          ctx.moveTo(0, 0.5);
+          ctx.lineTo(TILE_PX, 0.5);
+        }
+        if (ty % m === m - 1) {
+          ctx.moveTo(0, TILE_PX - 0.5);
+          ctx.lineTo(TILE_PX, TILE_PX - 0.5);
+        }
+        ctx.stroke();
+
+        return canvas;
+      },
+    });
+
+    let metatileLayer = null;
+    let metatileVisible = false;
+
+    function createMetatileLayer() {
+      return new MetatileDebugLayer({
+        tileSize: TILE_PX,
+        opacity: 1,
+        zIndex: 400,
+      });
+    }
+
+    function rebuildMetatileLayer() {
+      const wasOn = metatileVisible && metatileLayer && map.hasLayer(metatileLayer);
+      if (metatileLayer) map.removeLayer(metatileLayer);
+      metatileLayer = createMetatileLayer();
+      if (wasOn) metatileLayer.addTo(map);
+    }
+
+    metatileLayer = createMetatileLayer();
+
+    const ZoomControl = L.Control.extend({
+      options: { position: "topleft" },
+      onAdd: function (map) {
+        const div = L.DomUtil.create("div", "srk-panel srk-zoom");
+        const update = () => {
+          div.textContent = "Zoom " + map.getZoom();
+        };
+        map.on("zoom zoomend", update);
+        update();
+        return div;
+      },
+    });
+
+    const LayerTogglesControl = L.Control.extend({
+      options: { position: "bottomleft" },
+      onAdd: function (map) {
+        const div = L.DomUtil.create("div", "srk-panel srk-meta");
+
+        const osmLabel = L.DomUtil.create("label", "", div);
+        const osmInput = L.DomUtil.create("input", "", osmLabel);
+        osmInput.type = "checkbox";
+        osmInput.id = "srk-osm-toggle";
+        osmLabel.appendChild(document.createTextNode("OSM-Kacheln anzeigen"));
+
+        const fmtRow = L.DomUtil.create("div", "srk-meta-params", div);
+        fmtRow.style.marginTop = "0.4em";
+        const fmtLabel = L.DomUtil.create("label", "", fmtRow);
+        fmtLabel.appendChild(document.createTextNode("Kacheln"));
+        const fmtSelect = L.DomUtil.create("select", "", fmtLabel);
+        fmtSelect.id = "srk-view-format";
+        fmtSelect.style.width = "auto";
+        fmtSelect.style.font = "inherit";
+        fmtSelect.style.padding = "0.2em 0.3em";
+        fmtSelect.style.border = "1px solid #bbb";
+        fmtSelect.style.borderRadius = "3px";
+        fmtSelect.style.background = "#fff";
+        [["jpg", "JPG"], ["png", "PNG"]].forEach(function (pair) {
+          const opt = document.createElement("option");
+          opt.value = pair[0];
+          opt.textContent = pair[1];
+          if (pair[0] === tileFormat) opt.selected = true;
+          fmtSelect.appendChild(opt);
+        });
+
+        const metaLabel = L.DomUtil.create("label", "", div);
+        metaLabel.style.marginTop = "0.4em";
+        const metaInput = L.DomUtil.create("input", "", metaLabel);
+        metaInput.type = "checkbox";
+        metaInput.id = "srk-metatile-toggle";
+        metaLabel.appendChild(document.createTextNode("Metatile-Bereiche anzeigen"));
+
+        const params = L.DomUtil.create("div", "srk-meta-params", div);
+        const mtLabel = L.DomUtil.create("label", "", params);
+        mtLabel.appendChild(document.createTextNode("Metatile"));
+        const mtInput = L.DomUtil.create("input", "", mtLabel);
+        mtInput.type = "number";
+        mtInput.min = "1";
+        mtInput.max = "64";
+        mtInput.value = String(metatileSize);
+        mtInput.id = "srk-metatile-size";
+
+        const gLabel = L.DomUtil.create("label", "", params);
+        gLabel.appendChild(document.createTextNode("Gutter"));
+        const gInput = L.DomUtil.create("input", "", gLabel);
+        gInput.type = "number";
+        gInput.min = "0";
+        gInput.max = "16";
+        gInput.value = String(gutterSize);
+        gInput.id = "srk-gutter-size";
+
+        L.DomEvent.disableClickPropagation(div);
+        L.DomEvent.disableScrollPropagation(div);
+
+        function applyMetaParams() {
+          const m = parseInt(mtInput.value, 10);
+          const g = parseInt(gInput.value, 10);
+          if (!Number.isFinite(m) || m < 1) {
+            mtInput.value = String(metatileSize);
+            return;
+          }
+          if (!Number.isFinite(g) || g < 0) {
+            gInput.value = String(gutterSize);
+            return;
+          }
+          metatileSize = m;
+          gutterSize = g;
+          rebuildMetatileLayer();
+        }
+
+        L.DomEvent.on(osmInput, "change", function () {
+          if (osmInput.checked) {
+            osmLayer.addTo(map);
+          } else {
+            map.removeLayer(osmLayer);
+          }
+        });
+        L.DomEvent.on(fmtSelect, "change", function () {
+          setTileFormat(fmtSelect.value);
+        });
+        L.DomEvent.on(metaInput, "change", function () {
+          metatileVisible = metaInput.checked;
+          if (metatileVisible) {
+            if (!metatileLayer) metatileLayer = createMetatileLayer();
+            metatileLayer.addTo(map);
+          } else if (metatileLayer) {
+            map.removeLayer(metatileLayer);
+          }
+        });
+        L.DomEvent.on(mtInput, "change", applyMetaParams);
+        L.DomEvent.on(gInput, "change", applyMetaParams);
+        return div;
+      },
+    });
+
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + " B";
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+      if (bytes < 1024 * 1024 * 1024)
+        return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+      return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+    }
+
+    function formatBbox(bounds) {
+      const west = bounds.getWest();
+      const south = bounds.getSouth();
+      const east = bounds.getEast();
+      const north = bounds.getNorth();
+      const fmt = (n) => n.toFixed(6);
+      return [fmt(west), fmt(south), fmt(east), fmt(north)].join(",");
+    }
+
+    function parseBboxString(str) {
+      const raw = (str || "").trim();
+      if (!raw) return null;
+      const parts = raw.split(",");
+      if (parts.length !== 4) return null;
+      const nums = parts.map((p) => Number(p.trim()));
+      if (nums.some((n) => !Number.isFinite(n))) return null;
+      const [xmin, ymin, xmax, ymax] = nums;
+      if (!(xmin < xmax && ymin < ymax)) return null;
+      if (xmin < -180 || xmax > 180 || ymin < -90 || ymax > 90) return null;
+      return L.latLngBounds([ymin, xmin], [ymax, xmax]);
+    }
+
+    const RunControl = L.Control.extend({
+      options: { position: "topright" },
+      onAdd: function (map) {
+        const root = L.DomUtil.create("div", "srk-panel srk-run");
+        L.DomEvent.disableClickPropagation(root);
+        L.DomEvent.disableScrollPropagation(root);
+
+        root.innerHTML = `
+          <h2>Pipeline (run.sh)</h2>
+          <div class="srk-api-warn" id="srk-api-warn" hidden></div>
+          <p class="srk-hint">BBOX zeichnen oder eingeben, Datenquelle wählen, dann starten. Rahmen an Kanten oder Ecken ziehen zum Anpassen.</p>
+
+          <div class="srk-field">
+            <span>Voreinstellung</span>
+            <select id="srk-pipeline-preset">
+              <option value="">— Voreinstellung —</option>
+            </select>
+          </div>
+
+          <div class="srk-field">
+            <span>BBOX (WGS84 xmin,ymin,xmax,ymax)</span>
+            <input type="text" class="srk-bbox" id="srk-bbox" placeholder="z. B. 13.3924,52.4543,13.4859,52.5009" spellcheck="false" />
+            <div class="srk-row" style="margin-top:0.35em;margin-bottom:0">
+              <button type="button" id="srk-draw">BBOX zeichnen</button>
+              <button type="button" id="srk-apply-bbox">Übernehmen</button>
+              <button type="button" id="srk-clear-bbox">Löschen</button>
+              <button type="button" id="srk-fit-bbox" disabled>Einpassen</button>
+            </div>
+          </div>
+
+          <div class="srk-field">
+            <span>Datenquelle</span>
+            <div class="srk-radios">
+              <label><input type="radio" name="srk-source" value="local" checked /> Lokal (data/osm)</label>
+              <label><input type="radio" name="srk-source" value="geofabrik" /> Geofabrik</label>
+            </div>
+            <div id="srk-local-wrap">
+              <select id="srk-local-pbf"><option value="">Laden…</option></select>
+            </div>
+            <div id="srk-geofabrik-wrap" hidden>
+              <div class="srk-field" style="margin-bottom:0.35em">
+                <span>Vorschlag</span>
+                <select id="srk-geo-preset">
+                  <option value="">— Region wählen —</option>
+                </select>
+              </div>
+              <div class="srk-field" style="margin-bottom:0">
+                <span>URL</span>
+                <input type="text" id="srk-geo-url" placeholder="https://download.geofabrik.de/…/*.osm.pbf" />
+              </div>
+            </div>
+          </div>
+
+          <div class="srk-opts">
+            <label class="srk-check"><input type="checkbox" id="srk-refresh" checked /> --refresh</label>
+            <label class="srk-check"><input type="checkbox" id="srk-skip-render" /> --skip-render</label>
+          </div>
+          <div class="srk-zoom-row">
+            <label>--zmin <input type="number" id="srk-zmin" min="10" max="20" value="15" /></label>
+            <label>--zmax <input type="number" id="srk-zmax" min="10" max="20" value="19" /></label>
+            <label>--format
+              <select id="srk-format" style="width:auto">
+                <option value="jpg" selected>jpg</option>
+                <option value="png">png</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="srk-row">
+            <button type="button" class="srk-primary" id="srk-start">run.sh starten</button>
+            <button type="button" class="srk-danger" id="srk-stop" disabled>Stop</button>
+            <button type="button" id="srk-copy-cmd">Befehl kopieren</button>
+          </div>
+
+          <div class="srk-status" id="srk-status">Bereit</div>
+          <div class="srk-log" id="srk-log" hidden></div>
+        `;
+
+        const els = {
+          warn: root.querySelector("#srk-api-warn"),
+          pipelinePreset: root.querySelector("#srk-pipeline-preset"),
+          bbox: root.querySelector("#srk-bbox"),
+          draw: root.querySelector("#srk-draw"),
+          applyBbox: root.querySelector("#srk-apply-bbox"),
+          clear: root.querySelector("#srk-clear-bbox"),
+          fit: root.querySelector("#srk-fit-bbox"),
+          localWrap: root.querySelector("#srk-local-wrap"),
+          geoWrap: root.querySelector("#srk-geofabrik-wrap"),
+          localSelect: root.querySelector("#srk-local-pbf"),
+          geoPreset: root.querySelector("#srk-geo-preset"),
+          geoUrl: root.querySelector("#srk-geo-url"),
+          refresh: root.querySelector("#srk-refresh"),
+          skipRender: root.querySelector("#srk-skip-render"),
+          zmin: root.querySelector("#srk-zmin"),
+          zmax: root.querySelector("#srk-zmax"),
+          format: root.querySelector("#srk-format"),
+          start: root.querySelector("#srk-start"),
+          stop: root.querySelector("#srk-stop"),
+          copy: root.querySelector("#srk-copy-cmd"),
+          status: root.querySelector("#srk-status"),
+          log: root.querySelector("#srk-log"),
+        };
+
+        let apiOk = false;
+        let currentBbox = null;
+        let bboxRect = null;
+        let bboxHandles = {};
+        let drawing = false;
+        let drawStart = null;
+        let draftRect = null;
+        let pollTimer = null;
+        let logSince = 0;
+        let wasRunning = false;
+        let suppressBboxInput = false;
+        let moveState = null;
+
+        for (const preset of PIPELINE_PRESETS) {
+          const opt = document.createElement("option");
+          opt.value = preset.id;
+          opt.textContent = preset.label;
+          els.pipelinePreset.appendChild(opt);
+        }
+
+        for (const preset of GEOFABRIK_PRESETS) {
+          const opt = document.createElement("option");
+          opt.value = preset.url;
+          opt.textContent = preset.label;
+          els.geoPreset.appendChild(opt);
+        }
+
+        function setStatus(text, kind) {
+          els.status.textContent = text;
+          els.status.className = "srk-status" + (kind ? " srk-" + kind : "");
+        }
+
+        function setSourceMode(mode) {
+          const radios = root.querySelectorAll('input[name="srk-source"]');
+          radios.forEach((r) => {
+            r.checked = r.value === mode;
+          });
+          const local = mode === "local";
+          els.localWrap.hidden = !local;
+          els.geoWrap.hidden = local;
+        }
+
+        function clearHandles() {
+          Object.values(bboxHandles).forEach((h) => {
+            if (h) map.removeLayer(h);
+          });
+          bboxHandles = {};
+        }
+
+        function handlePositions(bounds) {
+          const w = bounds.getWest();
+          const e = bounds.getEast();
+          const s = bounds.getSouth();
+          const n = bounds.getNorth();
+          const mx = (w + e) / 2;
+          const my = (s + n) / 2;
+          return {
+            n: L.latLng(n, mx),
+            e: L.latLng(my, e),
+            s: L.latLng(s, mx),
+            w: L.latLng(my, w),
+            ne: L.latLng(n, e),
+            nw: L.latLng(n, w),
+            se: L.latLng(s, e),
+            sw: L.latLng(s, w),
+          };
+        }
+
+        const HANDLE_IDS = ["n", "e", "s", "w", "ne", "nw", "se", "sw"];
+
+        function syncHandles(bounds) {
+          const pos = handlePositions(bounds);
+          for (const id of HANDLE_IDS) {
+            if (bboxHandles[id]) {
+              bboxHandles[id].setLatLng(pos[id]);
+            }
+          }
+        }
+
+        function updateBboxFromBounds(bounds, opts) {
+          opts = opts || {};
+          if (
+            !bounds ||
+            !bounds.isValid() ||
+            Math.abs(bounds.getWest() - bounds.getEast()) < MIN_BBOX_DELTA ||
+            Math.abs(bounds.getSouth() - bounds.getNorth()) < MIN_BBOX_DELTA
+          ) {
+            return;
+          }
+          currentBbox = opts.rawString || formatBbox(bounds);
+          suppressBboxInput = true;
+          els.bbox.value = currentBbox;
+          suppressBboxInput = false;
+          els.bbox.classList.remove("srk-invalid");
+          els.fit.disabled = false;
+          if (bboxRect) {
+            bboxRect.setBounds(bounds);
+          } else {
+            bboxRect = L.rectangle(bounds, {
+              color: "#c45c26",
+              weight: 2,
+              fillColor: "#c45c26",
+              fillOpacity: 0.12,
+              interactive: true,
+            }).addTo(map);
+            bboxRect.on("mousedown", onRectMouseDown);
+          }
+          ensureHandles(bounds);
+          syncHandles(bounds);
+        }
+
+        function onHandleDrag(handleId) {
+          return function (e) {
+            if (!bboxRect) return;
+            const b = bboxRect.getBounds();
+            let west = b.getWest();
+            let east = b.getEast();
+            let south = b.getSouth();
+            let north = b.getNorth();
+            const ll = e.target.getLatLng();
+            if (handleId === "n") {
+              north = Math.min(90, Math.max(south + MIN_BBOX_DELTA, ll.lat));
+            } else if (handleId === "s") {
+              south = Math.max(-90, Math.min(north - MIN_BBOX_DELTA, ll.lat));
+            } else if (handleId === "e") {
+              east = Math.min(180, Math.max(west + MIN_BBOX_DELTA, ll.lng));
+            } else if (handleId === "w") {
+              west = Math.max(-180, Math.min(east - MIN_BBOX_DELTA, ll.lng));
+            } else if (handleId === "ne") {
+              north = Math.min(90, Math.max(south + MIN_BBOX_DELTA, ll.lat));
+              east = Math.min(180, Math.max(west + MIN_BBOX_DELTA, ll.lng));
+            } else if (handleId === "nw") {
+              north = Math.min(90, Math.max(south + MIN_BBOX_DELTA, ll.lat));
+              west = Math.max(-180, Math.min(east - MIN_BBOX_DELTA, ll.lng));
+            } else if (handleId === "se") {
+              south = Math.max(-90, Math.min(north - MIN_BBOX_DELTA, ll.lat));
+              east = Math.min(180, Math.max(west + MIN_BBOX_DELTA, ll.lng));
+            } else if (handleId === "sw") {
+              south = Math.max(-90, Math.min(north - MIN_BBOX_DELTA, ll.lat));
+              west = Math.max(-180, Math.min(east - MIN_BBOX_DELTA, ll.lng));
+            }
+            updateBboxFromBounds(L.latLngBounds([south, west], [north, east]));
+          };
+        }
+
+        function ensureHandles(bounds) {
+          const pos = handlePositions(bounds);
+          for (const handleId of HANDLE_IDS) {
+            if (bboxHandles[handleId]) continue;
+            const marker = L.marker(pos[handleId], {
+              draggable: true,
+              zIndexOffset: 1000,
+              icon: L.divIcon({
+                className: "srk-handle srk-handle-" + handleId,
+                iconSize: [12, 12],
+                iconAnchor: [6, 6],
+              }),
+            }).addTo(map);
+            marker.on("dragstart", function () {
+              map.dragging.disable();
+            });
+            marker.on("drag", onHandleDrag(handleId));
+            marker.on("dragend", function () {
+              map.dragging.enable();
+              setStatus("BBOX angepasst");
+            });
+            bboxHandles[handleId] = marker;
+          }
+        }
+
+        function onRectMouseDown(e) {
+          if (drawing) return;
+          L.DomEvent.stop(e);
+          const b = bboxRect.getBounds();
+          moveState = {
+            start: e.latlng,
+            west: b.getWest(),
+            east: b.getEast(),
+            south: b.getSouth(),
+            north: b.getNorth(),
+          };
+          map.dragging.disable();
+          map.on("mousemove", onRectMouseMove);
+          map.on("mouseup", onRectMouseUp);
+        }
+
+        function onRectMouseMove(e) {
+          if (!moveState) return;
+          const dLat = e.latlng.lat - moveState.start.lat;
+          const dLng = e.latlng.lng - moveState.start.lng;
+          let west = moveState.west + dLng;
+          let east = moveState.east + dLng;
+          let south = moveState.south + dLat;
+          let north = moveState.north + dLat;
+          if (west < -180) {
+            const s = -180 - west;
+            west += s;
+            east += s;
+          }
+          if (east > 180) {
+            const s = east - 180;
+            west -= s;
+            east -= s;
+          }
+          if (south < -90) {
+            const s = -90 - south;
+            south += s;
+            north += s;
+          }
+          if (north > 90) {
+            const s = north - 90;
+            south -= s;
+            north -= s;
+          }
+          updateBboxFromBounds(L.latLngBounds([south, west], [north, east]));
+        }
+
+        function onRectMouseUp() {
+          map.off("mousemove", onRectMouseMove);
+          map.off("mouseup", onRectMouseUp);
+          map.dragging.enable();
+          if (moveState) {
+            moveState = null;
+            setStatus("BBOX verschoben");
+          }
+        }
+
+        function setBbox(bounds, opts) {
+          opts = opts || {};
+          clearHandles();
+          if (bboxRect) {
+            bboxRect.off("mousedown", onRectMouseDown);
+            map.removeLayer(bboxRect);
+            bboxRect = null;
+          }
+          if (!bounds || !bounds.isValid()) {
+            currentBbox = null;
+            if (!opts.keepInput) {
+              suppressBboxInput = true;
+              els.bbox.value = "";
+              suppressBboxInput = false;
+            }
+            els.bbox.classList.remove("srk-invalid");
+            els.fit.disabled = true;
+            return;
+          }
+          updateBboxFromBounds(bounds, opts);
+          if (opts.fit) {
+            map.fitBounds(bounds, { padding: [40, 40] });
+          }
+        }
+
+        function applyBboxInput() {
+          const bounds = parseBboxString(els.bbox.value);
+          if (!bounds) {
+            if ((els.bbox.value || "").trim()) {
+              els.bbox.classList.add("srk-invalid");
+              setStatus("Ungültige BBOX (xmin,ymin,xmax,ymax)", "error");
+            }
+            return false;
+          }
+          setBbox(bounds, { rawString: els.bbox.value.trim() });
+          setStatus("BBOX gesetzt");
+          return true;
+        }
+
+        function stopDrawing() {
+          drawing = false;
+          drawStart = null;
+          if (draftRect) {
+            map.removeLayer(draftRect);
+            draftRect = null;
+          }
+          map.dragging.enable();
+          map.getContainer().classList.remove("srk-drawing");
+          els.draw.classList.remove("srk-active");
+          els.draw.textContent = "BBOX zeichnen";
+        }
+
+        function startDrawing() {
+          if (drawing) {
+            stopDrawing();
+            return;
+          }
+          drawing = true;
+          map.dragging.disable();
+          map.getContainer().classList.add("srk-drawing");
+          els.draw.classList.add("srk-active");
+          els.draw.textContent = "Zeichnen… (Ziehen)";
+          setStatus("BBOX aufziehen: Maus gedrückt halten und ziehen");
+        }
+
+        function sourceMode() {
+          const checked = root.querySelector('input[name="srk-source"]:checked');
+          return checked ? checked.value : "local";
+        }
+
+        function selectedData() {
+          if (sourceMode() === "local") {
+            return els.localSelect.value || null;
+          }
+          const url = (els.geoUrl.value || "").trim();
+          return url || null;
+        }
+
+        function selectedFormat() {
+          return els.format.value === "png" ? "png" : "jpg";
+        }
+
+        function buildCommand() {
+          const data = selectedData();
+          if (!currentBbox || !data) return null;
+          const parts = ["./run.sh", "--data", data, "--bbox", currentBbox];
+          if (els.refresh.checked) parts.push("--refresh");
+          if (els.skipRender.checked) parts.push("--skip-render");
+          const zmin = els.zmin.value.trim();
+          const zmax = els.zmax.value.trim();
+          if (zmin) parts.push("--zmin", zmin);
+          if (zmax) parts.push("--zmax", zmax);
+          parts.push("--format", selectedFormat());
+          return parts.join(" ");
+        }
+
+        function appendLogLines(lines) {
+          if (!lines || !lines.length) return;
+          els.log.hidden = false;
+          const atBottom =
+            els.log.scrollTop + els.log.clientHeight >= els.log.scrollHeight - 8;
+          els.log.textContent +=
+            (els.log.textContent ? "\n" : "") + lines.join("\n");
+          if (atBottom) els.log.scrollTop = els.log.scrollHeight;
+        }
+
+        function setRunningUi(running) {
+          els.start.disabled = running || !apiOk;
+          els.stop.disabled = !running;
+          els.draw.disabled = running;
+        }
+
+        async function refreshStatusOnce() {
+          if (!apiOk) return;
+          try {
+            const res = await fetch("/api/run/status?since=" + logSince);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.lines && data.lines.length) {
+              appendLogLines(data.lines);
+              logSince = data.next;
+            }
+            if (data.running) {
+              wasRunning = true;
+              setRunningUi(true);
+              setStatus("Pipeline läuft…", "running");
+            } else {
+              setRunningUi(false);
+              if (wasRunning) {
+                wasRunning = false;
+                if (data.exit_code === 0) {
+                  setStatus("Fertig (exit 0) — Kacheln aktualisiert", null);
+                  syncTileFormatFromServer().then(function () {
+                    streetLayer.redraw();
+                  });
+                } else if (data.exit_code != null) {
+                  setStatus("Beendet mit Exit " + data.exit_code, "error");
+                }
+              }
+              if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+              }
+            }
+          } catch (_) {
+            /* ignore transient errors while polling */
+          }
+        }
+
+        function startPolling() {
+          if (pollTimer) return;
+          pollTimer = setInterval(refreshStatusOnce, 1000);
+          refreshStatusOnce();
+        }
+
+        async function loadPbfs() {
+          try {
+            const res = await fetch("/api/pbfs");
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            const data = await res.json();
+            apiOk = true;
+            els.warn.hidden = true;
+            els.localSelect.innerHTML = "";
+            if (!data.files || !data.files.length) {
+              const opt = document.createElement("option");
+              opt.value = "";
+              opt.textContent = "(keine .pbf in data/osm)";
+              els.localSelect.appendChild(opt);
+            } else {
+              for (const f of data.files) {
+                const opt = document.createElement("option");
+                opt.value = f.path;
+                opt.textContent = f.name + " (" + formatSize(f.size) + ")";
+                els.localSelect.appendChild(opt);
+              }
+              const berlin = data.files.find((f) =>
+                f.name.includes("berlin-latest")
+              );
+              if (berlin) els.localSelect.value = berlin.path;
+            }
+            setRunningUi(false);
+            const st = await fetch("/api/run/status?since=0");
+            if (st.ok) {
+              const s = await st.json();
+              if (s.running) {
+                logSince = 0;
+                els.log.textContent = "";
+                els.log.hidden = false;
+                startPolling();
+              }
+            }
+          } catch (err) {
+            apiOk = false;
+            els.warn.hidden = false;
+            els.warn.innerHTML =
+              "Kein Preview-Server – Pipeline starten und PBF-Liste brauchen <code>./render/preview_server.py</code>. Befehl kann trotzdem kopiert werden.";
+            els.localSelect.innerHTML = "";
+            const opt = document.createElement("option");
+            opt.value = "data/osm/berlin-latest.osm.pbf";
+            opt.textContent = "data/osm/berlin-latest.osm.pbf (Fallback)";
+            els.localSelect.appendChild(opt);
+            els.start.disabled = true;
+            els.stop.disabled = true;
+            setStatus("API nicht erreichbar (nur Anzeige / Befehl kopieren)");
+          }
+        }
+
+        root.querySelectorAll('input[name="srk-source"]').forEach((radio) => {
+          L.DomEvent.on(radio, "change", function () {
+            const local = sourceMode() === "local";
+            els.localWrap.hidden = !local;
+            els.geoWrap.hidden = local;
+          });
+        });
+
+        L.DomEvent.on(els.pipelinePreset, "change", function () {
+          const id = els.pipelinePreset.value;
+          if (!id) return;
+          const preset = PIPELINE_PRESETS.find((p) => p.id === id);
+          if (!preset) return;
+          const bounds = parseBboxString(preset.bbox);
+          if (!bounds) {
+            setStatus("Preset-BBOX ungültig", "error");
+            return;
+          }
+          setSourceMode("geofabrik");
+          els.geoUrl.value = preset.data;
+          const match = Array.from(els.geoPreset.options).find(
+            (o) => o.value === preset.data
+          );
+          els.geoPreset.value = match ? preset.data : "";
+          setBbox(bounds, { rawString: preset.bbox, fit: true });
+          setStatus("Voreinstellung „" + preset.label + "“ geladen");
+        });
+
+        L.DomEvent.on(els.geoPreset, "change", function () {
+          if (els.geoPreset.value) els.geoUrl.value = els.geoPreset.value;
+        });
+
+        L.DomEvent.on(els.bbox, "keydown", function (e) {
+          if (e.key === "Enter") {
+            L.DomEvent.stop(e);
+            applyBboxInput();
+          }
+        });
+        L.DomEvent.on(els.bbox, "change", function () {
+          if (!suppressBboxInput) applyBboxInput();
+        });
+        L.DomEvent.on(els.applyBbox, "click", function (e) {
+          L.DomEvent.stop(e);
+          applyBboxInput();
+        });
+
+        L.DomEvent.on(els.draw, "click", function (e) {
+          L.DomEvent.stop(e);
+          startDrawing();
+        });
+        L.DomEvent.on(els.clear, "click", function (e) {
+          L.DomEvent.stop(e);
+          stopDrawing();
+          setBbox(null);
+          els.pipelinePreset.value = "";
+          setStatus("BBOX gelöscht");
+        });
+        L.DomEvent.on(els.fit, "click", function (e) {
+          L.DomEvent.stop(e);
+          if (bboxRect) map.fitBounds(bboxRect.getBounds(), { padding: [40, 40] });
+        });
+
+        map.on("mousedown", function (e) {
+          if (!drawing) return;
+          L.DomEvent.stop(e);
+          drawStart = e.latlng;
+          if (draftRect) map.removeLayer(draftRect);
+          draftRect = L.rectangle(L.latLngBounds(drawStart, drawStart), {
+            color: "#4a7ab0",
+            weight: 2,
+            dashArray: "4 3",
+            fillOpacity: 0.08,
+            interactive: false,
+          }).addTo(map);
+        });
+        map.on("mousemove", function (e) {
+          if (!drawing || !drawStart || !draftRect) return;
+          draftRect.setBounds(L.latLngBounds(drawStart, e.latlng));
+        });
+        map.on("mouseup", function (e) {
+          if (!drawing || !drawStart) return;
+          const bounds = L.latLngBounds(drawStart, e.latlng);
+          stopDrawing();
+          if (
+            Math.abs(bounds.getWest() - bounds.getEast()) < MIN_BBOX_DELTA ||
+            Math.abs(bounds.getSouth() - bounds.getNorth()) < MIN_BBOX_DELTA
+          ) {
+            setStatus("BBOX zu klein — bitte erneut aufziehen", "error");
+            return;
+          }
+          setBbox(bounds);
+          setStatus("BBOX gesetzt");
+        });
+
+        L.DomEvent.on(els.copy, "click", async function (e) {
+          L.DomEvent.stop(e);
+          const cmd = buildCommand();
+          if (!cmd) {
+            setStatus("BBOX und Datenquelle erforderlich", "error");
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(cmd);
+            setStatus("Befehl kopiert");
+          } catch (_) {
+            setStatus(cmd);
+          }
+        });
+
+        L.DomEvent.on(els.start, "click", async function (e) {
+          L.DomEvent.stop(e);
+          if (!apiOk) return;
+          if (!currentBbox && els.bbox.value.trim()) {
+            if (!applyBboxInput()) return;
+          }
+          const data = selectedData();
+          if (!currentBbox) {
+            setStatus("Bitte zuerst eine BBOX setzen", "error");
+            return;
+          }
+          if (!data) {
+            setStatus("Bitte eine Datenquelle wählen", "error");
+            return;
+          }
+          const payload = {
+            data: data,
+            bbox: currentBbox,
+            refresh: els.refresh.checked,
+            skip_render: els.skipRender.checked,
+            format: selectedFormat(),
+          };
+          const zmin = els.zmin.value.trim();
+          const zmax = els.zmax.value.trim();
+          if (zmin) payload.zmin = Number(zmin);
+          if (zmax) payload.zmax = Number(zmax);
+
+          els.log.textContent = "";
+          els.log.hidden = false;
+          logSince = 0;
+          wasRunning = true;
+          setRunningUi(true);
+          setStatus("Starte…", "running");
+
+          try {
+            const res = await fetch("/api/run", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            const body = await res.json();
+            if (!res.ok || !body.ok) {
+              setRunningUi(false);
+              setStatus(body.error || "Start fehlgeschlagen", "error");
+              return;
+            }
+            appendLogLines(["[preview] " + (body.command || "started")]);
+            startPolling();
+          } catch (err) {
+            setRunningUi(false);
+            setStatus(String(err), "error");
+          }
+        });
+
+        L.DomEvent.on(els.stop, "click", async function (e) {
+          L.DomEvent.stop(e);
+          try {
+            await fetch("/api/run/stop", { method: "POST", body: "{}" });
+            setStatus("Stop angefordert…");
+          } catch (err) {
+            setStatus(String(err), "error");
+          }
+        });
+
+        loadPbfs();
+        return root;
+      },
+    });
+
+    new ZoomControl().addTo(map);
+    new LayerTogglesControl().addTo(map);
+    new RunControl().addTo(map);
+  </script>
+</body>
+</html>

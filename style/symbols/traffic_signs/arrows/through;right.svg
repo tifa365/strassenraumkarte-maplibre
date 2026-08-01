@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns="http://www.w3.org/2000/svg"
+   width="150"
+   height="500"
+   viewBox="-350 -300 150 500">
+
+  <path
+     fill="param(fill) #d0d0d0"
+     stroke="param(outline) none"
+     stroke-width="param(outline-width) 1"
+     d="m -275.355,-300
+        -24,200
+        h 16
+        L -285.691,75.229
+        -287.355,200
+        h 24
+        L -264.955,80
+        A 29.6,55 0 0 1 -235.355,25
+        l 0,55
+        30,-70
+        -30,-90
+        v 65
+        A 50.4,95 0 0 0 -265.961,4.523
+        L -267.355,-100
+        h 16
+        z"/>
+</svg>

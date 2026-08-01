@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="150"
+     height="500"
+     viewBox="-50 -300 150 500">
+
+  <polygon
+     transform="rotate(-90,112.323,87.677)"
+     fill="param(fill) #d0d0d0"
+     stroke="param(outline) none"
+     stroke-width="param(outline-width) 1"
+     points="0,12 300,8 300,24 500,0 300,-24 300,-8 0,-12"/>
+</svg>
