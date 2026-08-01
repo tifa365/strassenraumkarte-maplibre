@@ -6,6 +6,10 @@ The appeal of the style, which is aesthetically inspired by architectural plans,
 
 Technically, the style combines a QGIS project (with the layer styling) and an involved data pipeline based on osm2pgsql and SQL post-processing that prepares geometries and attributes for rendering.
 
+Note: This repository is a new, modernised version based on an osm2pgsql / SQL / QGIS workflow; the original version (Overpass / Python / QGIS) lives at [osmberlin/strassenraumkarte-neukoelln](https://github.com/osmberlin/strassenraumkarte-neukoelln).
+
+![Example of the Straßenraumkarte](./docs/example.png)
+
 ## Requirements
 
 The following tools are required to run the data pipeline and tile rendering (package names may vary by distribution):
@@ -61,17 +65,11 @@ Shared defaults live in `data/db_config.sh`.
    ./run.sh --check
    ```
 
-5. **QGIS project:** `style/strassenraumkarte.qgz` must point at the same host/port/database and use EPSG:3857 (same as `CRS` / `--crs`, unless you intentionally diverge — see CRS note below). For headless rendering, authentication uses `~/.pgpass` and `PGUSER` (from `DB_USER` in `data/db_config.sh`) — the project datasources typically omit the username.
+5. **QGIS project:** `style/strassenraumkarte.qgz` must point at the same host/port/database and use EPSG:3857 (same as `CRS` / `--crs`, unless you intentionally diverge — see [Rendering + CRS](#rendering--crs)). For headless rendering, authentication uses `~/.pgpass` and `PGUSER` (from `DB_USER` in `data/db_config.sh`) — the project datasources typically omit the username.
 
 Tile rendering uses a custom **PyQGIS metatile loop** ([`render/xyz_tiles.py`](render/xyz_tiles.py)), not `qgis_process`. Progress is reported after each metatile; the default tile background is `#ededed` (override with `--background`). Each metatile is rendered with a **gutter** of extra surrounding tiles (default 1) so labels and symbols can cross metatile edges; gutter pixels are discarded and only core tiles are written. Rendering is direct Web Mercator; ground-metre widths use `@mercator_scale`.
 
 `run.sh` also runs these checks before a full pipeline and can create the DB with `--setup-db` in the same invocation.
-
-**CRS:** EPSG:3857 (Web Mercator) is the standard throughout the pipeline — osm2pgsql import, PostGIS storage, QGIS project, and tile rendering. It should normally **not** be changed. If you do override `--crs` / `CRS`, you must also adapt the QGIS project CRS and **all** layer CRS / projection references. Changing the env/CLI value alone does **not** rewrite `style/strassenraumkarte.qgz` or existing layer definitions in this *.qgz-File.
-
-Under EPSG:3857, SQL processing converts ground metres to map units with an automatic scale factor \(1/\cos\varphi\) derived from the data extent centroid (or `--bbox` mid-latitude). See `data/processing/sql/crs_scale.sql` and `metres()`. For a metric projected CRS (e.g. UTM), the factor is 1.
-
-QGIS styles store ground-metre symbol sizes as **map units** scaled by `@mercator_scale` (same factor). Headless rendering ([`render/xyz_tiles.py`](render/xyz_tiles.py)) sets that project variable from the render extent and draws tiles **directly in EPSG:3857**. In the QGIS GUI, a project macro (`openProject`) sets `@mercator_scale` once from the map canvas centre — enable Python macros under *Settings → Options → General* (or allow when opening the project). Without macros, set the project variable `mercator_scale` manually (≈ \(1/\cos\varphi\); e.g. Berlin ≈ 1.64).
 
 ## Usage
 
@@ -101,7 +99,7 @@ Useful options:
 | --- | --- |
 | `--setup-db` | Create database + enable PostGIS if missing |
 | `--check` | Only verify tools and database connectivity |
-| `--crs` | Project CRS as EPSG code (default: `3857`; normally leave unchanged — see CRS note under Setup) |
+| `--crs` | Project CRS as EPSG code (default: `3857`; normally leave unchanged — see [Rendering + CRS](#rendering--crs)) |
 | `--refresh` | Drop and recreate the database schema before import |
 | `--skip-processing` | Import only (skip SQL processing) |
 | `--skip-render` | Stop after data preparation |
@@ -153,6 +151,14 @@ The preview page can optionally show classic OSM tiles underneath the Straßenra
 # Without --bbox: render the combined PostGIS / project extent
 ./render/render_tiles.sh --zmin 16 --zmax 19
 ```
+
+### Rendering + CRS
+
+**CRS:** EPSG:3857 (Web Mercator) is the standard throughout the pipeline — osm2pgsql import, PostGIS storage, QGIS project, and tile rendering. It should normally **not** be changed. If you do override `--crs` / `CRS`, you must also adapt the QGIS project CRS and **all** layer CRS / projection references. Changing the env/CLI value alone does **not** rewrite `style/strassenraumkarte.qgz` or existing layer definitions in this *.qgz-File.
+
+Under EPSG:3857, SQL processing converts ground metres to map units with an automatic scale factor \(1/\cos\varphi\) derived from the data extent centroid (or `--bbox` mid-latitude). See `data/processing/sql/crs_scale.sql` and `metres()`. For a metric projected CRS (e.g. UTM), the factor is 1.
+
+QGIS styles store ground-metre symbol sizes as **map units** scaled by `@mercator_scale` (same factor). Headless rendering ([`render/xyz_tiles.py`](render/xyz_tiles.py)) sets that project variable from the render extent and draws tiles **directly in EPSG:3857**. In the QGIS GUI, a project macro (`openProject`) sets `@mercator_scale` once from the map canvas centre — enable Python macros under *Settings → Options → General* (or allow when opening the project). Without macros, set the project variable `mercator_scale` manually (≈ \(1/\cos\varphi\); e.g. Berlin ≈ 1.64).
 
 ## Further information about the map (in German)
 
