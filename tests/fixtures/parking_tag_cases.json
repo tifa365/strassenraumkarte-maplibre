@@ -1,0 +1,5 @@
+[
+  {"name":"side wins over both","tags":{"parking:both":"lane","parking:left":"diagonal","parking:both:orientation":"parallel","parking:left:orientation":"perpendicular"},"expected":{"left":"diagonal","left_orientation":"perpendicular","right":"lane","right_orientation":"parallel"}},
+  {"name":"explicit no survives","tags":{"parking:both":"no","parking:right":"separate"},"expected":{"left":"no","right":"separate"}},
+  {"name":"missing side","tags":{"highway":"residential"},"expected":{"left":null,"right":null}}
+]
