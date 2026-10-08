@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Straßenraumkarte, drawn by MapLibre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+/* Layout: one column of map plates; each plate is a swipe comparison with a caption strip, like a map sheet margin */
+:root{
+  --bg:#f3f4f1; --paper:#ffffff; --ink:#22261f; --muted:#5d6458; --rule:#d5d9cf; --accent:#2f6b4f; --mark:#c0392b;
+  --display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#161915;--paper:#1f231e;--ink:#e6e9e1;--muted:#a3ab9c;--rule:#353b32;--accent:#7fc4a0;--mark:#ef7d6e;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#161915;--paper:#1f231e;--ink:#e6e9e1;--muted:#a3ab9c;--rule:#353b32;--accent:#7fc4a0;--mark:#ef7d6e;color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--body)}
+.wrap{max-width:none;margin:0;padding-inline:clamp(16px,2vw,32px);padding-block:28px 56px;display:grid;gap:40px}
+header{display:grid;gap:12px}
+.eyebrow{font:600 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font:600 clamp(28px,4.4vw,44px)/1.08 var(--display);margin:0;text-wrap:balance}
+.lede{margin:0;max-width:75ch;color:var(--muted)}
+.facts{display:flex;flex-wrap:wrap;gap:10px 28px;margin:4px 0 0;padding:0;list-style:none;font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.facts b{color:var(--ink);font-weight:400}
+figure{margin:0;display:grid;gap:10px}
+.plate{background:var(--paper);border:1px solid var(--rule);padding:10px}
+.plate img{display:block;width:100%;height:auto}
+figcaption{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;font-size:14px;color:var(--muted)}
+figcaption strong{font:600 18px var(--display);color:var(--ink)}
+.zoom{font:12px var(--mono);border:1px solid var(--rule);padding:1px 6px;color:var(--muted)}
+h2{font:600 24px var(--display);margin:0 0 4px}
+.section-note{margin:0;color:var(--muted);max-width:65ch}
+.cmp{position:relative;overflow:hidden;user-select:none;touch-action:pan-y;aspect-ratio:2/1;width:100%;max-width:100%}
+.cmp img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:auto}
+.cmp .left{clip-path:inset(0 calc(100% - var(--pos,50%)) 0 0)}
+.cmp .divider{position:absolute;top:0;bottom:0;left:var(--pos,50%);width:2px;margin-left:-1px;background:var(--paper);box-shadow:0 0 0 1px rgba(0,0,0,.35);pointer-events:none}
+.cmp .tag{position:absolute;top:8px;font:600 12px var(--display);letter-spacing:.06em;text-transform:uppercase;background:rgba(20,24,19,.72);color:#fff;padding:2px 8px}
+.cmp .tag.l{left:8px}.cmp .tag.r{right:8px}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;font-size:14px}
+.controls input[type=range]{flex:1 1 220px;accent-color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--rule)}
+.seg button{font:600 13px var(--display);letter-spacing:.04em;background:transparent;color:var(--muted);border:0;padding:5px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--paper)}
+.seg button:focus-visible,.controls input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.grid{display:grid;grid-template-columns:1fr;gap:40px}
+footer{font-size:13px;color:var(--muted);border-top:1px solid var(--rule);padding-top:14px;max-width:80ch}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Berlin · MapLibre vector port</div>
+  <h1>Straßenraumkarte, drawn by MapLibre</h1>
+  <p class="lede">The street-space map rendered in the browser from vector tiles, compared with the QGIS renderer it was ported from and the published original tiles. Drag the divider on each plate.</p>
+  <ul class="facts">
+    <li>mean ΔE to QGIS <b>1.53</b></li>
+    <li>to the original <b>1.94</b></li>
+    <li>pixels at or below ΔE 2.3 <b>70 %</b></li>
+    <li>161 feature classes · 3.2 M sampled pixels</li>
+  </ul>
+</header>
+
+<figure>
+  <div class="plate"><img id="overview" alt="MapLibre rendering of central Berlin from Tiergarten to Friedrichshain at zoom 15"></div>
+  <figcaption><strong>Tiergarten to Friedrichshain</strong><span><span class="zoom">z15</span> MapLibre, 9 × 6 tiles, ca. 6.7 × 4.5 km</span></figcaption>
+</figure>
+
+<section>
+  <h2>Side by side</h2>
+  <p class="section-note">Left of the divider: the QGIS reference render (or the 2024 original tiles); right: MapLibre. The original is older OSM data, so some lanes and features differ for that reason alone.</p>
+</section>
+<div class="grid" id="pairs"></div>
+
+<footer>Map data © OpenStreetMap contributors (ODbL). QGIS reference rendered with QGIS 4.2.1 with effects; original tiles from tiles.osm-berlin.org. Colour differences are pixel-weighted CIE76 ΔE over six comparison blocks at z15–z18.</footer>
+</div>
+<script>
+const DATA = {
+ "overview": "img/overview-z15.jpg",
+ "pairs": [
+  {
+   "title": "Hermannplatz",
+   "zoom": "z17",
+   "qgis": "img/hermannplatz-qgis.jpg",
+   "maplibre": "img/hermannplatz-maplibre.jpg",
+   "original": "img/hermannplatz-original.jpg"
+  },
+  {
+   "title": "Werbellinstraße, Rollbergsiedlung",
+   "zoom": "z17",
+   "qgis": "img/werbellinstr-qgis.jpg",
+   "maplibre": "img/werbellinstr-maplibre.jpg",
+   "original": "img/werbellinstr-original.jpg"
+  },
+  {
+   "title": "Karl-Marx-Straße",
+   "zoom": "z18",
+   "qgis": "img/kms18-qgis.jpg",
+   "maplibre": "img/kms18-maplibre.jpg",
+   "original": "img/kms18-original.jpg"
+  },
+  {
+   "title": "Karl-Marx-Straße / Ringbahn",
+   "zoom": "z17",
+   "qgis": "img/bridges-qgis.jpg",
+   "maplibre": "img/bridges-maplibre.jpg",
+   "original": "img/bridges-original.jpg"
+  },
+  {
+   "title": "Hasenheide / Hermannstraße, street level",
+   "zoom": "z19",
+   "qgis": "img/street19-qgis.jpg",
+   "maplibre": "img/street19-maplibre.jpg",
+   "original": "img/street19-original.jpg"
+  }
+ ]
+};
+document.getElementById('overview').src = DATA.overview;
+const host = document.getElementById('pairs');
+DATA.pairs.forEach((p, i) => {
+  const fig = document.createElement('figure');
+  const hasOrig = !!p.original;
+  fig.innerHTML = `
+    <div class="plate"><div class="cmp" style="--pos:50%">
+      <img class="right" alt="MapLibre rendering of ${p.title}" src="${p.maplibre}">
+      <img class="left" alt="Reference rendering of ${p.title}" src="${p.qgis}">
+      <div class="divider"></div><span class="tag l">QGIS</span><span class="tag r">MapLibre</span>
+    </div></div>
+    <div class="controls">
+      <input type="range" id="swipe-${i}" min="0" max="100" value="50" aria-label="Divider position for ${p.title}">
+      ${hasOrig ? `<span class="seg" role="group" aria-label="Left side shows"><button type="button" aria-pressed="true" data-src="qgis">QGIS</button><button type="button" aria-pressed="false" data-src="original">Original 2024</button></span>` : ''}
+    </div>
+    <figcaption><strong>${p.title}</strong><span><span class="zoom">${p.zoom}</span> 6 × 3 tiles</span></figcaption>`;
+  host.appendChild(fig);
+  const cmp = fig.querySelector('.cmp'), range = fig.querySelector('input'), left = fig.querySelector('.left'), tag = fig.querySelector('.tag.l');
+  const set = v => { cmp.style.setProperty('--pos', v + '%'); range.value = v; };
+  range.addEventListener('input', () => set(range.value));
+  const drag = e => { const r = cmp.getBoundingClientRect(); const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left; set(Math.max(0, Math.min(100, x / r.width * 100)).toFixed(1)); };
+  let down = false;
+  cmp.addEventListener('pointerdown', e => { down = true; cmp.setPointerCapture(e.pointerId); drag(e); });
+  cmp.addEventListener('pointermove', e => { if (down) drag(e); });
+  cmp.addEventListener('pointerup', () => { down = false; });
+  fig.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    fig.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    left.src = p[b.dataset.src];
+    tag.textContent = b.dataset.src === 'qgis' ? 'QGIS' : 'Original 2024';
+  }));
+});
+</script>
+</body>
+</html>

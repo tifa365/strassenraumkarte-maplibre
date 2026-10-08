@@ -6,6 +6,7 @@
 > close the MapLibre rendering is to the QGIS one (mean ΔE 1.5, see [docs/MAPLIBRE_PARITY.md](docs/MAPLIBRE_PARITY.md)).
 > The QGIS project and the rest of the pipeline are the original work of the OSM Berlin community.
 > To try the map yourself, follow [MapLibre vector-tile preview](#maplibre-vector-tile-preview) below; it needs a local PostGIS database and Martin, because no hosted tiles exist yet.
+> **[See the MapLibre / QGIS / original comparison](https://tifa365.github.io/strassenraumkarte-maplibre/)** (static page in [docs/compare](docs/compare)).
 > Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL).
 
 The _Straßenraumkarte_ is a map style with a particular focus on the spatial organisation of urban and street space — especially carriageways and objects in the public realm, as well as urban land use. It was developed as a basemap for OpenStreetMap projects in Berlin-Neukölln, but can now be generated for other places as well.
