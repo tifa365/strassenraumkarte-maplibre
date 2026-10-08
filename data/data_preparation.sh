@@ -361,6 +361,88 @@ else
   echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - Create geometries for highway labeling..."
   run_sql "processing/sql/label_highway.sql"
 
+  # 6) Web/MapLibre attribute derivation — precomputed columns feeding the
+  #    MapLibre vector-tile port (render/mvt/, web/). Purely additive: reads
+  #    tables built by the scripts above, never reorders/depends on anything
+  #    downstream. See the active straßenraumkarte→MapLibre migration plan.
+
+  # * | Dependency: place_node, place_polygon from osm_import.lua
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Deduplicate place labels..."
+  run_sql "processing/sql/web/web_label_dedup.sql"
+
+  # * | Dependency: label_waterway from label_waterway.sql
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Derive label visibility thresholds..."
+  run_sql "processing/sql/web/web_label_visibility.sql"
+
+  # * | Dependency: highway_area + direction from highway_area_direction.sql
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Bucket surface-texture rotations..."
+  run_sql "processing/sql/web/web_texture_rotation.sql"
+
+  # * | Dependency: road_marking_way from road_marking_* processing
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Materialize non-native road-marking symbols..."
+  run_sql "processing/sql/web/web_road_marking_symbols.sql"
+
+  # * | Dependency: road_marking_polygon from road_marking_* processing
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Materialize barred-area hatching..."
+  run_sql "processing/sql/web/web_road_marking_hatch.sql"
+
+  # * | Dependency: landuse from osm_import.lua
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Materialize construction-site hatching..."
+  run_sql "processing/sql/web/web_construction_hatch.sql"
+
+  # * | Dependency: tactile_paving from road-marking processing
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Materialize tactile-paving markers..."
+  run_sql "processing/sql/web/web_tactile_paving.sql"
+
+  # * | Dependency: separation from road-marking processing
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Materialize separation markers..."
+  run_sql "processing/sql/web/web_separation_markers.sql"
+
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Materialize highway HashLines..."
+  run_sql "processing/sql/web/web_highway_hashes.sql"
+  run_sql "processing/sql/web/web_railway_ties.sql"
+  run_sql "processing/sql/web/web_landscape_ticks.sql"
+
+  # * | Dependency: barrier_way from osm_import.lua
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Materialize barrier-way markers..."
+  run_sql "processing/sql/web/web_barrier_way_markers.sql"
+
+  # * | Dependency: tree from osm_import.lua + tree.sql
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Create stable tree attributes..."
+  run_sql "processing/sql/web/web_tree.sql"
+
+  # * | Dependency: tree (crowns) from web_tree.sql
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Derive tree crown overlap depth..."
+  run_sql "processing/sql/web/web_tree_overlap.sql"
+
+  # * | Dependency: feature_node from osm_import.lua + feature_direction.sql
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Derive MapLibre feature icon names..."
+  run_sql "processing/sql/web/web_symbol_names.sql"
+
+  # * | Dependency: landuse from osm_import.lua
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Derive landuse area for draw order..."
+  run_sql "processing/sql/web/web_landuse_area.sql"
+
+  # * | Dependency: landuse.area from web_landuse_area.sql
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Derive visible parts of textured landuse..."
+  run_sql "processing/sql/web/web_landuse_texture.sql"
+
+  # * | Dependency: building_parts_dissolved_height from building processing
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Merge touching building outlines (shadows)..."
+  run_sql "processing/sql/web/web_building_outline.sql"
+
+  # * | Dependency: building_parts_dissolved_height from building processing
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Walls between building parts of different height (shadows)..."
+  run_sql "processing/sql/web/web_building_height_steps.sql"
+
+  # * | Dependency: highway_area (layer) from highway processing
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Merge carriageway outlines (edge shade)..."
+  run_sql "processing/sql/web/web_highway_area_outline.sql"
+
+  # Martin needs every configured table; the cars are loaded separately.
+  echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO]    - [web] Ensure parking_cars exists (load cars with data/load_parking_cars.sh)..."
+  run_sql "processing/sql/web/web_parking_cars_placeholder.sql"
+
 fi
 
 echo "$(date +'%Y-%m-%d %H:%M:%S')  [INFO] Script completed."

@@ -1,0 +1,649 @@
+# Martin MVT tile server config for the MapLibre port (Phase 1 layer set).
+# Regenerate/extend the auto-detectable entries with:
+#   martin --save-config - <connection-string>
+# (see data/db_config.sh for connection defaults). auto_publish is
+# deliberately off -- only tables actually used by web/style.json are
+# listed here, not the whole schema. road_marking_polygon, label_highway,
+# label_waterway, water_body_dissolved, building_parts_dissolved_height,
+# building_lines are added by hand (geometry_type/srid) since their geom
+# column has no fixed PostGIS type modifier and Martin's auto-detect
+# skips those. NOTE: 'lanes' (raw centerlines) is deliberately NOT
+# exposed -- verified against the real QGIS project that it is never
+# directly rendered, only used as SQL input for highway_area/
+# road_marking_*. The visible carriageway comes from highway_area
+# (fills) + road_marking_* (lines/markings). water_body_dissolved (not
+# water_body) and building_parts_dissolved_height (not building) are the
+# tables the real QGIS style actually renders -- verified the same way.
+
+listen_addresses: 127.0.0.1:3000
+postgres:
+  connection_string: postgres://postgres@localhost:5433/strassenraumkarte
+  auto_publish: false
+  tables:
+    highway:
+      schema: public
+      table: highway
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      id_column: segment_id
+      properties:
+        footway: text
+        segregated: text
+        class: text
+        highway: text
+        informal: text
+        is_sidepath: text
+        layer: int4
+        tunnel: text
+        type: text
+        width: float4
+        width_mapped: float4
+    highway_hashes:
+      schema: public
+      table: highway_hashes
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      id_column: hash_id
+      properties:
+        kind: text
+        layer: int4
+    water_body:
+      schema: public
+      table: water_body
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties:
+        name: text
+        natural: text
+        osm_id: int8
+        osm_type: bpchar
+    bridge:
+      schema: public
+      table: bridge
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties:
+        layer: int4
+        osm_id: int8
+        osm_type: bpchar
+    bridge_shade:
+      schema: public
+      table: bridge_shade
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties:
+        layer: int4
+        osm_id: int8
+    highway_area:
+      schema: public
+      table: highway_area
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties:
+        area:highway: text
+        class: text
+        direction: float4
+        hierarchy: int4
+        layer: int4
+        markings: text
+        osm_id: int8
+        osm_type: bpchar
+        sett:length: text
+        source: text
+        surface: text
+        surface:colour: text
+        symbol: text
+        temporary: text
+        texture_paving_rotation_bucket: text
+        texture_rotation_bucket: text
+        tunnel: text
+        type: text
+    road_marking_way:
+      schema: public
+      table: road_marking_way
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      properties:
+        arrow: text
+        class: text
+        colour: text
+        dasharray: text
+        direction: float4
+        layer: int4
+        length: float4
+        osm_id: int8
+        osm_type: bpchar
+        pattern: text
+        road_marking: text
+        source: text
+        stroke: text
+        symbol: text
+        type: text
+        width: float4
+    road_marking_sharks_teeth:
+      schema: public
+      table: road_marking_sharks_teeth
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      id_column: tooth_id
+      properties:
+        colour: text
+        layer: int4
+        marker_index: int4
+        osm_id: int8
+        osm_type: bpchar
+        part_index: int4
+        source: text
+    tactile_paving:
+      schema: public
+      table: tactile_paving_markers
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      id_column: marker_id
+      properties:
+        layer: int4
+        marker_index: int4
+        part_index: int4
+    separation:
+      schema: public
+      table: separation_markers
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      id_column: marker_id
+      properties:
+        colour: text
+        kind: text
+        layer: int4
+        marker_index: int4
+        outline_colour: text
+        part_index: int4
+    road_marking_node:
+      schema: public
+      table: road_marking_node
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POINT
+      properties:
+        arrow: text
+        class: text
+        colour: text
+        dasharray: text
+        direction: float4
+        icon_rotation: float4
+        layer: int4
+        length: float4
+        osm_id: int8
+        osm_type: bpchar
+        pattern: text
+        road_marking: text
+        source: text
+        stroke: text
+        symbol: text
+        symbol_name: text
+        symbol_size_m: float4
+        type: text
+        width: float4
+    landuse:
+      schema: public
+      table: landuse
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties:
+        area: float4
+        class: text
+        direction: float4
+        layer: int4
+        leaf_type: text
+        name: text
+        osm_id: int8
+        osm_type: bpchar
+        surface: text
+    parking_cars:
+      schema: public
+      table: parking_cars
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POINT
+      properties:
+        icon: text
+        icon_rotation: float4
+    tree:
+      schema: public
+      table: tree
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POINT
+      properties:
+        crown_overlap: float4
+        circumference: float4
+        diameter_crown: float4
+        genus: text
+        height: float4
+        leaf_type: text
+        natural: text
+        osm_id: int8
+        osm_type: bpchar
+        ref: text
+        rotation: int4
+        source: text
+    feature_node:
+      schema: public
+      table: feature_node
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POINT
+      properties:
+        class: text
+        direction: float4
+        icon_rotation: float4
+        layer: int4
+        osm_id: int8
+        osm_type: bpchar
+        subclass: text
+        symbol_name: text
+        symbol_size_m: float4
+    barrier_node:
+      schema: public
+      table: barrier_node
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POINT
+      properties:
+        barrier: text
+        bicycle: text
+        foot: text
+        layer: int4
+        osm_id: int8
+        osm_type: bpchar
+    barrier_polygon:
+      schema: public
+      table: barrier_polygon
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties:
+        barrier: text
+        layer: int4
+        osm_id: int8
+        osm_type: bpchar
+    barrier_way:
+      schema: public
+      table: barrier_way
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      properties:
+        height: float4
+        barrier: text
+        layer: int4
+        osm_id: int8
+        osm_type: bpchar
+    barrier_way_marker_polygons:
+      schema: public
+      table: barrier_way_marker_polygons
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      id_column: marker_id
+      properties:
+        barrier: text
+        colour: text
+        layer: int4
+        marker_index: int4
+        outline_colour: text
+    housenumber:
+      schema: public
+      table: housenumber
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POINT
+      properties:
+        addr:housenumber: text
+        osm_id: int8
+        osm_type: bpchar
+    place_node:
+      schema: public
+      table: place_node
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POINT
+      properties:
+        label_suppressed: bool
+        name: text
+        osm_id: int8
+        osm_type: bpchar
+        place: text
+    place_polygon:
+      schema: public
+      table: place_polygon
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties:
+        label_min_zoom: float4
+        name: text
+        osm_id: int8
+        osm_type: bpchar
+        place: text
+    road_marking_polygon:
+      schema: public
+      table: road_marking_polygon
+      srid: 3857
+      geometry_column: geom
+      geometry_type: MULTIPOLYGON
+      properties:
+        osm_type: bpchar
+        osm_id: int8
+        source: text
+        road_marking: text
+        stroke: text
+        dasharray: text
+        pattern: text
+        arrow: text
+        symbol: text
+        width: float4
+        length: float4
+        colour: text
+        direction: float4
+        type: text
+        class: text
+        layer: int4
+    label_highway:
+      schema: public
+      table: label_highway
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      properties:
+        name: text
+        class: text
+        zoom: text
+    label_waterway:
+      schema: public
+      table: label_waterway
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      properties:
+        label_min_zoom: float4
+        name: text
+        waterway: text
+    water_body_dissolved:
+      schema: public
+      table: water_body_dissolved
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties: {}
+    waterway_clipped:
+      schema: public
+      table: waterway_clipped
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      properties:
+        covered: text
+        name: text
+        osm_id: int8
+        osm_type: bpchar
+        tunnel: text
+        waterway: text
+        width: float4
+    building_parts_dissolved_height:
+      schema: public
+      table: building_parts_dissolved_height
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties:
+        height: float4
+    building:
+      schema: public
+      table: building
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties:
+        building: text
+        building:part: text
+        osm_id: int8
+        osm_type: bpchar
+        roof:shape: text
+    building_shade:
+      schema: public
+      table: building_shade
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties:
+        height: float4
+    building_lines:
+      schema: public
+      table: building_lines
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      properties:
+        class: text
+    feature_way:
+      schema: public
+      table: feature_way
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      properties:
+        class: text
+        layer: int4
+        osm_id: int8
+        osm_type: bpchar
+    feature_polygon:
+      schema: public
+      table: feature_polygon
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties:
+        class: text
+        layer: int4
+        osm_id: int8
+        osm_type: bpchar
+    playground_node:
+      schema: public
+      table: playground_node
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POINT
+      properties:
+        layer: int4
+        osm_id: int8
+        osm_type: bpchar
+        playground: text
+    playground_way:
+      schema: public
+      table: playground_way
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      properties:
+        layer: int4
+        osm_id: int8
+        osm_type: bpchar
+        playground: text
+    playground_polygon:
+      schema: public
+      table: playground_polygon
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties:
+        layer: int4
+        osm_id: int8
+        osm_type: bpchar
+        playground: text
+    pitch:
+      schema: public
+      table: pitch
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      properties:
+        layer: int4
+        osm_id: int8
+        osm_type: bpchar
+        sport: text
+        surface: text
+        surface:colour: text
+        texture_paving_rotation_bucket: text
+    pitch_markings:
+      schema: public
+      table: pitch_markings
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POINT
+      properties:
+        direction: int4
+        dist_long: float4
+        dist_short: float4
+        hoops: text
+        osm_id: int8
+        sport: text
+    landscape_node:
+      schema: public
+      table: landscape_node
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POINT
+      properties:
+        class: text
+        osm_id: int8
+        osm_type: bpchar
+    landscape_way:
+      schema: public
+      table: landscape_way
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      properties:
+        class: text
+        osm_id: int8
+        osm_type: bpchar
+        planar_length: float4
+    landscape_ticks:
+      schema: public
+      table: landscape_ticks
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      id_column: tick_id
+    railway_node:
+      schema: public
+      table: railway_node
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POINT
+      properties:
+        layer: int4
+        osm_id: int8
+        osm_type: bpchar
+        railway: text
+    railway_way:
+      schema: public
+      table: railway_way
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      properties:
+        layer: int4
+        gauge: int4
+        tunnel: text
+        osm_id: int8
+        osm_type: bpchar
+        railway: text
+        service: text
+        usage: text
+    construction_hatch:
+      schema: public
+      table: construction_hatch
+      srid: 3857
+      geometry_column: geom
+      geometry_type: MULTILINESTRING
+      id_column: hatch_id
+      properties:
+        osm_id: int8
+    landuse_texture:
+      schema: public
+      table: landuse_texture
+      srid: 3857
+      geometry_column: geom
+      geometry_type: MULTIPOLYGON
+      id_column: texture_id
+      properties:
+        class: text
+        osm_id: int8
+    building_outline:
+      schema: public
+      table: building_outline
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      id_column: outline_id
+      properties: {}
+    building_height_step:
+      schema: public
+      table: building_height_step
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      id_column: step_id
+      properties:
+        facing: float4
+    highway_area_outline:
+      schema: public
+      table: highway_area_outline
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      id_column: outline_id
+      properties:
+        layer: int4
+    road_marking_hatch:
+      schema: public
+      table: road_marking_hatch
+      srid: 3857
+      geometry_column: geom
+      geometry_type: MULTILINESTRING
+      id_column: hatch_id
+      properties:
+        layer: int4
+        colour: text
+    railway_ties:
+      schema: public
+      table: railway_ties
+      srid: 3857
+      geometry_column: geom
+      geometry_type: POLYGON
+      id_column: tie_id
+      properties:
+        layer: int4
+        disused: bool
+    highway_service:
+      schema: public
+      table: highway_service
+      srid: 3857
+      geometry_column: geom
+      geometry_type: LINESTRING
+      properties:
+        class: text
+        layer: int4
+        width: float4
