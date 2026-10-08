@@ -179,7 +179,12 @@ CREATE TABLE building_shade AS
 WITH src AS (
     SELECT
         height,
-        ST_MakeValid(geom) AS geom,
+        -- Positive-then-negative micro-buffer (1cm, negligible at map scale)
+        -- physically separates rings that only touch at a point/degenerate
+        -- edge — ST_MakeValid alone satisfies GEOS's OGC-validity notion but
+        -- not SFCGAL/CGAL's stricter "interior is not connected" check that
+        -- CG_MinkowskiSum enforces below.
+        ST_Buffer(ST_Buffer(ST_MakeValid(geom), 0.01), -0.01) AS geom,
         :'building_shade_base_m'::double precision
             + (:'building_shade_max_m'::double precision
                - :'building_shade_base_m'::double precision)
@@ -193,18 +198,26 @@ WITH src AS (
 )
 SELECT
     height,
+    -- CG_Extrude(geom, dx, dy, 0.0) + ST_Force2D used to compute this (a pure
+    -- XY-plane sweep, never actually wanting the 3D solid) but SFCGAL's
+    -- Extrude now returns a Solid type that this PostGIS build's SFCGAL
+    -- bridge can't convert back ("SFCGAL2LWGEOM: Unknown Type"). CG_MinkowskiSum
+    -- with a hairline flat-capped rectangle standing in for the sweep vector
+    -- computes the identical 2D shadow silhouette without ever producing a
+    -- 3D Solid (verified against hand-computed cases, incl. polygons with
+    -- holes). ST_ForceRHR normalizes ring winding, which SFCGAL requires.
     ST_MakeValid(
-        ST_UnaryUnion(
-            ST_CollectionExtract(
-                ST_Force2D(
-                    CG_Extrude(
-                        geom,
+        CG_MinkowskiSum(
+            ST_ForceRHR(geom),
+            ST_Buffer(
+                ST_MakeLine(
+                    ST_MakePoint(0, 0),
+                    ST_MakePoint(
                         metres(shade_len_m) * cos(radians(:'building_shade_angle_deg'::double precision)),
-                        metres(shade_len_m) * sin(radians(:'building_shade_angle_deg'::double precision)),
-                        0.0
+                        metres(shade_len_m) * sin(radians(:'building_shade_angle_deg'::double precision))
                     )
                 ),
-                3
+                0.001, 'endcap=flat join=mitre'
             )
         )
     ) AS geom

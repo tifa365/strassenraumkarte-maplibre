@@ -111,17 +111,29 @@ WHERE o.gid IS NULL
   AND g.geom IS NOT NULL
   AND NOT ST_IsEmpty(g.geom);
 
--- Step G: One random point per free cell
+-- Step G: One deterministic pseudo-random point per free cell.  The seeded
+-- ST_GeneratePoints overload keeps repeated processing runs visually stable.
 CREATE TEMP TABLE temp_tree_forest_generated ON COMMIT DROP AS
 SELECT
     'tree'::text AS "natural",
     leaf_type,
     area,
     size_factor,
-    (ST_Dump(ST_GeneratePoints(geom, 1))).geom AS geom
-FROM temp_grid_free_shrinked
-WHERE geom IS NOT NULL
-  AND NOT ST_IsEmpty(geom);
+    random_seed,
+    (ST_Dump(ST_GeneratePoints(geom, 1, random_seed))).geom AS geom
+FROM (
+    SELECT
+        f.*,
+        (
+            abs(
+                hashtextextended(encode(ST_AsEWKB(f.geom), 'hex'), 0)
+                % 2147483646
+            ) + 1
+        )::integer AS random_seed
+    FROM temp_grid_free_shrinked f
+    WHERE f.geom IS NOT NULL
+      AND NOT ST_IsEmpty(f.geom)
+) seeded;
 
 
 ----------------------------------------------------------------------
@@ -134,13 +146,19 @@ SET leaf_type = CASE
     WHEN leaf_type IN ('broadleaved', 'needleleaved') THEN leaf_type
     WHEN leaf_type = 'mixed' THEN
         CASE
-            WHEN random() < :'tree_forest_mixed_needleleaved_frac'::double precision
+            WHEN (
+                abs(hashtextextended(random_seed::text || ':leaf', 0) % 1000000)
+                / 1000000.0
+            ) < :'tree_forest_mixed_needleleaved_frac'::double precision
             THEN 'needleleaved'
             ELSE 'broadleaved'
         END
     ELSE
         CASE
-            WHEN random() < :'tree_forest_unknown_needleleaved_frac'::double precision
+            WHEN (
+                abs(hashtextextended(random_seed::text || ':leaf', 0) % 1000000)
+                / 1000000.0
+            ) < :'tree_forest_unknown_needleleaved_frac'::double precision
             THEN 'needleleaved'
             ELSE 'broadleaved'
         END
@@ -154,7 +172,10 @@ UPDATE temp_tree_forest_generated
 SET diameter_crown = ROUND(
     (
         size_factor * (
-            random() * (
+            (
+                abs(hashtextextended(random_seed::text || ':crown', 0) % 1000000)
+                / 1000000.0
+            ) * (
                 :'tree_forest_crown_max_m'::double precision
                 - :'tree_forest_crown_min_m'::double precision
             ) + :'tree_forest_crown_min_m'::double precision
@@ -166,7 +187,10 @@ SET diameter_crown = ROUND(
 -- Step C: slight rotation (keeps crown shadow direction plausible)
 UPDATE temp_tree_forest_generated
 SET rotation = FLOOR(
-    random() * (
+    (
+        abs(hashtextextended(random_seed::text || ':rotation', 0) % 1000000)
+        / 1000000.0
+    ) * (
         :'tree_forest_rotation_max'::integer
         - :'tree_forest_rotation_min'::integer
         + 1
@@ -190,7 +214,10 @@ INSERT INTO tree (
 )
 SELECT
     'F',  -- synthetic; not an OSM object type (N/W/R)
-    -row_number() OVER (),  -- synthetic negative id (osm2pgsql keeps osm_id NOT NULL)
+    -(
+        abs(hashtextextended(encode(ST_AsEWKB(g.geom), 'hex'), 0) % 9223372036854775806)
+        + 1
+    ),  -- stable synthetic negative id (osm2pgsql keeps osm_id NOT NULL)
     g."natural",
     g.leaf_type,
     NULL,

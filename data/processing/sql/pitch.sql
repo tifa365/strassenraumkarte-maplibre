@@ -61,9 +61,10 @@ SELECT
     "surface:colour",
     hoops,
     -- get the length of the longer side of the rectangle
-    ROUND(GREATEST(side1_length, side2_length)::NUMERIC, 1) AS dist_long,
+    -- REAL, not NUMERIC: numeric columns are encoded as strings in vector tiles
+    ROUND(GREATEST(side1_length, side2_length)::NUMERIC, 1)::REAL AS dist_long,
     -- get the shorter length
-    ROUND(LEAST(side1_length, side2_length)::NUMERIC, 1) AS dist_short,
+    ROUND(LEAST(side1_length, side2_length)::NUMERIC, 1)::REAL AS dist_short,
     -- get the orientation angle (direction of the longer side of the rectangle)
     ROUND(
         DEGREES(

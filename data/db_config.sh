@@ -6,6 +6,10 @@ DB_USER="${DB_USER:-postgres}"
 DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-5433}"
 
+# Keep connection settings available to subprocesses (exporters, audits and
+# render helpers) as well as to shell functions in this file.
+export DB_NAME DB_USER DB_HOST DB_PORT
+
 # Project CRS (EPSG code) for osm2pgsql import / PostGIS storage.
 # Must match the QGIS project CRS (default: 3857 = WGS 84 / Pseudo-Mercator).
 CRS="${CRS:-3857}"

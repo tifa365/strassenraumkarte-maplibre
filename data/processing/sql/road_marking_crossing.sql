@@ -1458,7 +1458,17 @@ zone_per_row AS (
         CASE
             WHEN b.has_ha_at_node THEN
                 (
-                    SELECT ST_Intersection(b.ext_buffer, areas.union_geom)
+                    -- ST_Union over many real highway_area polygons can carry subtle
+                    -- numerical defects (near-coincident vertices, touching rings)
+                    -- that GEOS's overlay engine rejects during the subsequent
+                    -- ST_Intersection ("Ring edge missing") even though the result
+                    -- is nominally OGC-valid. Same robustification as building.sql's
+                    -- CG_MinkowskiSum fix: a positive-then-negative micro-buffer
+                    -- physically resolves these before the fragile overlay op runs.
+                    SELECT ST_Intersection(
+                        b.ext_buffer,
+                        ST_Buffer(ST_Buffer(ST_MakeValid(areas.union_geom), 0.001), -0.001)
+                    )
                     FROM (
                         SELECT ST_Union(ha.geom) AS union_geom
                         FROM highway_area ha

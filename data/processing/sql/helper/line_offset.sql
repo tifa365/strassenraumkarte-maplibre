@@ -28,10 +28,20 @@ scaled AS (
         metres(transition) AS transition
 ),
 base AS (
+    -- Reject fully-degenerate (zero/near-zero-length) lines up front: a
+    -- 2-point line with (near-)identical endpoints has zero length, but
+    -- ST_RemoveRepeatedPoints refuses to collapse it below 2 points (that
+    -- would be an invalid LineString), so NPoints alone never catches it.
+    -- For lines that do have real length, ST_RemoveRepeatedPoints still
+    -- strips any *interior* repeated/near-duplicate vertices, which would
+    -- otherwise make the corresponding v1/v2 unit-vector division below
+    -- divide by zero (a repeated first/last point similarly zeroes the
+    -- endpoint tangent's dx/dy).
     SELECT
-        geom AS line_geom
+        ST_RemoveRepeatedPoints(geom, 0.001) AS line_geom
     WHERE geom IS NOT NULL
-      AND ST_NPoints(geom) >= 2
+      AND ST_Length(geom) > 0.001
+      AND ST_NPoints(ST_RemoveRepeatedPoints(geom, 0.001)) >= 2
 ),
 points AS (
     SELECT
@@ -185,10 +195,20 @@ scaled AS (
         metres(transition) AS transition
 ),
 base AS (
+    -- Reject fully-degenerate (zero/near-zero-length) lines up front: a
+    -- 2-point line with (near-)identical endpoints has zero length, but
+    -- ST_RemoveRepeatedPoints refuses to collapse it below 2 points (that
+    -- would be an invalid LineString), so NPoints alone never catches it.
+    -- For lines that do have real length, ST_RemoveRepeatedPoints still
+    -- strips any *interior* repeated/near-duplicate vertices, which would
+    -- otherwise make the corresponding v1/v2 unit-vector division below
+    -- divide by zero (a repeated first/last point similarly zeroes the
+    -- endpoint tangent's dx/dy).
     SELECT
-        geom AS line_geom
+        ST_RemoveRepeatedPoints(geom, 0.001) AS line_geom
     WHERE geom IS NOT NULL
-      AND ST_NPoints(geom) >= 2
+      AND ST_Length(geom) > 0.001
+      AND ST_NPoints(ST_RemoveRepeatedPoints(geom, 0.001)) >= 2
 ),
 points AS (
     SELECT

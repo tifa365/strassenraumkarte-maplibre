@@ -25,7 +25,16 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-TILES_DIR = REPO_ROOT / "render" / "tiles"
+# render_tiles.sh's default --out is now render/tiles-validated (render/tiles
+# is only kept around as legacy/unverified output); prefer it when present,
+# but fall back to the legacy directory for anyone who hasn't re-rendered.
+# PREVIEW_TILES_DIR overrides both, e.g. for a custom --out.
+_env_tiles_dir = os.environ.get("PREVIEW_TILES_DIR")
+if _env_tiles_dir:
+    TILES_DIR = Path(_env_tiles_dir)
+else:
+    _validated_tiles_dir = REPO_ROOT / "render" / "tiles-validated"
+    TILES_DIR = _validated_tiles_dir if _validated_tiles_dir.is_dir() else REPO_ROOT / "render" / "tiles"
 OSM_DIR = REPO_ROOT / "data" / "osm"
 RUN_SCRIPT = REPO_ROOT / "run.sh"
 

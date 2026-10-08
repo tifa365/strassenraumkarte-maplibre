@@ -53,7 +53,13 @@ labeling_baseline_1a AS (
     SELECT
         waterway.name,
         waterway.waterway,
-        (ST_Dump(ST_Split(ST_LineMerge(ST_Multi(ST_Union(waterway.geom)), TRUE), water_body_blade.geom))).geom AS geom
+        -- ST_Split rejects a blade that runs collinear with (rather than
+        -- cleanly crossing) the line at the cut point, even when not fully
+        -- "covered by" it (the ST_CoveredBy filter above only catches exact
+        -- overlap). ST_Difference against a hairline-buffered blade has no
+        -- such crossing-only restriction — subtracting a ~1mm-wide sliver at
+        -- each cut point achieves the same split, negligibly at map scale.
+        (ST_Dump(ST_Difference(ST_LineMerge(ST_Multi(ST_Union(waterway.geom)), TRUE), ST_Buffer(water_body_blade.geom, 0.001)))).geom AS geom
     FROM
         waterway, water_body_blade
     WHERE
@@ -190,10 +196,11 @@ labeling_baseline_3b AS (
     SELECT
         baseline.name,
         baseline.waterway,
+        -- Same ST_Split collinear-blade fragility as Step A above; same fix.
         (ST_Dump(
             CASE
                 WHEN bridge_blades.geom IS NULL THEN ST_LineMerge(baseline.geom)
-                ELSE ST_Split(ST_LineMerge(baseline.geom), bridge_blades.geom)
+                ELSE ST_Difference(ST_LineMerge(baseline.geom), ST_Buffer(bridge_blades.geom, 0.001))
             END
         )).geom AS geom
     FROM

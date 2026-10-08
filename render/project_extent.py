@@ -194,8 +194,9 @@ FROM (
     except (subprocess.CalledProcessError, FileNotFoundError):
         pass
 
-    # Last resort: pass original project CRS to qgis_process
-    return qgis_extent_string(xmin, xmax, ymin, ymax, epsg)
+    # xyz_tiles.py deliberately accepts WGS84 only. Returning a non-4326 value
+    # here would be interpreted as longitude/latitude and render the wrong world.
+    return None
 
 
 def main() -> int:

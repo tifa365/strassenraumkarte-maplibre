@@ -61,7 +61,7 @@ Optional:
   --setup-db                     Create database + enable PostGIS if missing
   --check                        Only verify tools and database, then exit
   --project <path>               QGIS project (default: style/strassenraumkarte.qgz)
-  --out <dir>                    Tile output directory (default: render/tiles)
+  --out <dir>                    Validated tile generation directory (default: render/tiles-validated)
   --zmin / --zmax                Zoom range (defaults: 15 / 20)
   --metatile                     Metatile size (default: 8)
   --gutter                       Extra tiles around each metatile (default: 1; discarded after render)
@@ -102,15 +102,38 @@ check_tools() {
   require_cmd osm2pgsql "Install osm2pgsql (flex/Lua support required)." || ok=1
   require_cmd osmium "Install osmium-tool (needed for --bbox extracts)." || ok=1
   require_cmd python3 "Install Python 3 (needed for PyQGIS tile rendering)." || ok=1
-  if command -v python3 >/dev/null 2>&1; then
-    if ! python3 -c "from qgis.core import QgsApplication" >/dev/null 2>&1; then
-      log ERROR "PyQGIS not importable (python3: from qgis.core import QgsApplication). Install QGIS Python bindings."
-      ok=1
-    else
-      log INFO "Found PyQGIS (python3 qgis.core)."
-    fi
+  if [[ "$SKIP_RENDER" = "true" ]]; then
+    log INFO "Skipping the PyQGIS check (--skip-render)."
+  elif command -v python3 >/dev/null 2>&1 && python3 -c "from qgis.core import QgsApplication" >/dev/null 2>&1; then
+    log INFO "Found PyQGIS (python3 qgis.core)."
+  elif qgis_bundle_python >/dev/null; then
+    # render_tiles.sh bootstraps this bundle's embedded Python itself.
+    log INFO "Found PyQGIS in QGIS app bundle: $(qgis_bundle_python)"
+  else
+    log ERROR "PyQGIS not importable (python3 or a /Applications/QGIS*.app bundle). Install QGIS Python bindings."
+    ok=1
   fi
   return "$ok"
+}
+
+# First QGIS app bundle Python (macOS) that can import PyQGIS, as render_tiles.sh picks it.
+qgis_bundle_python() {
+  [[ "$(uname)" == "Darwin" ]] || return 1
+  local bundles=(/Applications/QGIS*.app) bundle candidate contents root
+  [[ -n "${QGIS_APP:-}" ]] && bundles=("$QGIS_APP")
+  for bundle in "${bundles[@]}"; do
+    for candidate in "$bundle"/Contents/MacOS/python3*; do
+      [[ -x "$candidate" ]] || continue
+      contents=${candidate%/MacOS/python3*}
+      root="$contents/Resources/python${candidate##*/python}"
+      if PYTHONPATH="$root/site-packages:$root:$root/lib-dynload" QGIS_PREFIX_PATH="$contents/MacOS" \
+         QT_PLUGIN_PATH="$contents/PlugIns" "$candidate" -c 'import qgis' >/dev/null 2>&1; then
+        echo "${contents%/Contents}"
+        return 0
+      fi
+    done
+  done
+  return 1
 }
 
 check_database() {

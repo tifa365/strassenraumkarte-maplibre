@@ -286,8 +286,18 @@ CREATE TEMP TABLE dual_carriageway_centerline AS
         SELECT
             name,
             class,
+            -- ST_MakeValid alone satisfies GEOS/OGC validity but not
+            -- SFCGAL/CGAL's stricter requirements (consistent ring winding,
+            -- no touching rings) that CG_ApproximateMedialAxis enforces —
+            -- same fix as building.sql's CG_MinkowskiSum: a positive-then-
+            -- negative micro-buffer separates any touching rings, and
+            -- ST_ForceRHR normalizes winding.
             CG_ApproximateMedialAxis(
-                ST_MakeValid(ST_SimplifyPreserveTopology(geom, metres(1.0)))
+                ST_ForceRHR(
+                    ST_Buffer(ST_Buffer(
+                        ST_MakeValid(ST_SimplifyPreserveTopology(geom, metres(1.0))),
+                        0.001), -0.001)
+                )
             ) AS geom
         FROM
             dc_buffer_parts

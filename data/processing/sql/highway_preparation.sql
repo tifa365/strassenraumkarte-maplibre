@@ -42,6 +42,8 @@ SELECT
     tunnel,
     construction,
     is_sidepath,
+    footway,
+    segregated,
     tactile_paving,
     informal,
     crossing,
@@ -79,6 +81,14 @@ SELECT DISTINCT
     osm_id,
     pt
 FROM _vertices;
+
+-- Without this, the classified/highway_junction_nodes correlated EXISTS
+-- below (matching on line_id + exact point equality) has no index to use
+-- and falls back to a full scan of _endpoints per _line_points row — fine
+-- at Neukölln reference scale, prohibitively slow (many minutes) at full
+-- Berlin scale. Matches the btree-on-geometry-equality convention already
+-- used later in this file for _segment_endpoints.
+CREATE INDEX _endpoints_line_pt_idx ON _endpoints USING btree (line_id, pt);
 
 ANALYZE _endpoints;
 ANALYZE _line_points;
@@ -181,6 +191,8 @@ SELECT
     r.tunnel,
     r.construction,
     r.is_sidepath,
+    r.footway,
+    r.segregated,
     r.tactile_paving,
     r.informal,
     r.crossing,
@@ -219,6 +231,8 @@ SELECT
     r.tunnel,
     r.construction,
     r.is_sidepath,
+    r.footway,
+    r.segregated,
     r.tactile_paving,
     r.informal,
     r.crossing,
@@ -264,6 +278,8 @@ SELECT
     tunnel,
     construction,
     is_sidepath,
+    footway,
+    segregated,
     tactile_paving,
     informal,
     crossing,
@@ -298,6 +314,8 @@ FROM (
         tunnel,
         construction,
         is_sidepath,
+        footway,
+        segregated,
         tactile_paving,
         informal,
         crossing,
@@ -335,6 +353,8 @@ FROM (
         h.tunnel,
         h.construction,
         h.is_sidepath,
+        h.footway,
+        h.segregated,
         h.tactile_paving,
         h.informal,
         h.crossing,
@@ -533,6 +553,8 @@ SELECT
     s.tunnel,
     s.construction,
     s.is_sidepath,
+    s.footway,
+    s.segregated,
     s.tactile_paving,
     s.informal,
     s.crossing,

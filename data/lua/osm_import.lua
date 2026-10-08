@@ -239,6 +239,8 @@ local layers = {
             'construction',
 
             'is_sidepath',        
+            'footway',
+            'segregated',
             'tactile_paving',
             'informal',
 
@@ -491,7 +493,7 @@ highway_hierarchy = {
 local feature_advertising = { 'column' }
 local feature_amenity = { 'bench', 'bicycle_parking', 'bicycle_rental', 'charging_station', 'clock', 'drinking_water', 'fountain', 'grit_bin', 'loading_ramp', 'mobility_hub', 'parking_entrance', 'post_box', 'public_bookcase', 'recycling', 'shelter', 'small_electric_vehicle_parking', 'telephone', 'toilets', 'vending_machine', 'waste_basket', 'waste_disposal' }
 local feature_emergency = { 'fire_hydrant' }
-local feature_highway = { 'street_lamp', 'traffic_sign' }
+local feature_highway = { 'street_lamp', 'traffic_sign', 'bus_stop' }
 local feature_historic = { 'memorial' }
 local feature_leisure = { 'outdoor_seating', 'picnic_table', 'table', 'parklet' }
 local feature_man_made = { 'chimney', 'flagpole', 'guard_stone', 'manhole', 'mast', 'monitoring_station', 'pier', 'planter', 'pole', 'street_cabinet', 'water_well' }
@@ -790,6 +792,18 @@ local function round(value, decimal)
     return math.floor(value * factor + 0.5) / factor
 end
 
+-- Stable pseudo-random fraction derived from an OSM object id.  Tree crown
+-- fallbacks and rotations are persisted attributes and must not change just
+-- because the same extract was imported again with a different process RNG
+-- state.  Reduce before multiplying so the arithmetic stays within Lua's
+-- exact-integer range even for large OSM ids.
+local function deterministic_fraction(object_id, salt)
+    local modulus = 2147483647
+    local state = ((tonumber(object_id) or 0) % modulus + salt) % modulus
+    state = (state * 48271) % modulus
+    return state / modulus
+end
+
 -- Returns a mean value of the values in a list, ignoring nil values
 local function mean_from_values(...)
     local sum = 0
@@ -923,14 +937,17 @@ function process_tree(object, geom, table, keys)
                     end
                 end
 
-                -- no information? -> random value
+                -- No information: use stable id-derived variation.  This
+                -- preserves the QGIS 5..9 m / 3..6 m ranges without making
+                -- a fresh import visually reshuffle the same OSM objects.
                 if diameter == nil then
+                    local fraction = deterministic_fraction(object.id, 104729)
                     -- for tree: 5..9 m
                     if object.tags.natural == 'tree' then
-                        diameter = round(math.random() * 4 + 5, 1)
+                        diameter = round(fraction * 4 + 5, 1)
                     -- for shrub: 3..6 m
                     else
-                        diameter = round(math.random() * 3 + 3, 1)
+                        diameter = round(fraction * 3 + 3, 1)
                     end
                 end
 
@@ -969,9 +986,9 @@ function process_tree(object, geom, table, keys)
                 entry[key] = object.tags["tree:ref"]
             end
 
-        -- add a random rotation value for less uniform rendering
+        -- Stable id-derived rotation for less uniform rendering.
         elseif key == 'rotation' then
-            entry[key] = round(math.random() * 40) - 20
+            entry[key] = round(deterministic_fraction(object.id, 130363) * 40) - 20
 
         -- provenance: OSM-imported trees (not OSM's source=* tag)
         elseif key == 'source' then
@@ -1071,6 +1088,10 @@ function process_feature(object, geom, table, keys)
             elseif is_in(object.tags["disused:waterway"], feature_waterway) then
                 entry[key] = object.tags["disused:waterway"]
                 entry["disused"] = 'yes'
+            -- bus/tram platforms (public_transport=platform or highway=platform),
+            -- excluding railway platforms which are rendered separately
+            elseif (object.tags.public_transport == 'platform' or object.tags.highway == 'platform') and object.tags.railway ~= 'platform' then
+                entry[key] = 'platform'
             end
 
         -- distinguish subclasses for some feature classes
@@ -1453,6 +1474,10 @@ function process_highway(object, geom, table, keys)
             elseif highway_value:match("_link$") then
                 entry[key] = 'link'
             end 
+        elseif key == 'footway' then
+            entry[key] = object.tags.footway
+        elseif key == 'segregated' then
+            entry[key] = object.tags.segregated
         -- adding width, offset and transition, derived from highway and lane tagging in get_lanes()
         elseif key == 'width' then
             entry[key] = width
@@ -1824,7 +1849,8 @@ function osm2pgsql.process_way(object)
     -- feature (also disused:)
     if is_in(object.tags.advertising, feature_advertising) or is_in(object.tags.amenity, feature_amenity) or is_in(object.tags.emergency, feature_emergency) or is_in(object.tags.highway, feature_highway) or is_in(object.tags.historic, feature_historic) or is_in(object.tags.leisure, feature_leisure) or is_in(object.tags.man_made, feature_man_made) or (object.tags.leisure == 'pitch' and is_in(object.tags.sport, feature_sport)) or is_in(object.tags.tourism, feature_tourism) or is_in(object.tags.waterway, feature_waterway)
     or is_in(object.tags["disused:advertising"], feature_advertising) or is_in(object.tags["disused:amenity"], feature_amenity) or is_in(object.tags["disused:emergency"], feature_emergency) or is_in(object.tags["disused:highway"], feature_highway) or is_in(object.tags["disused:historic"], feature_historic) or is_in(object.tags["disused:leisure"], feature_leisure) or is_in(object.tags["disused:man_made"], feature_man_made) or (object.tags["disused:leisure"] == 'pitch' and (is_in(object.tags.sport, feature_sport) or is_in(object.tags["disused:sport"], feature_sport))) or is_in(object.tags["disused:tourism"], feature_tourism) or is_in(object.tags["disused:waterway"], feature_waterway)
-    or object.tags["skatepark:obstacles"] then
+    or object.tags["skatepark:obstacles"]
+    or ((object.tags.public_transport == 'platform' or object.tags.highway == 'platform') and object.tags.railway ~= 'platform') then
         -- for some features, closed lines should be interpreted as lines, unless they are explicitely tagged as area (area=yes)
         if object.is_closed and not (is_in(object.tags.amenity, feature_linear) and object.tags.area ~= 'yes') then
             -- exclude large recycling areas as they are more of a landuse type

@@ -485,14 +485,31 @@ clipped_lanes AS (
         buffer_left,
         buffer_right,
         lane_geom AS lane_geom_full,
-        ST_Intersection(lane_geom, stop_buffer) AS geom
+        cleaned.geom AS geom
     FROM matched_lanes
+    -- ST_Intersection(lane, stop_buffer) can return a MultiLineString where
+    -- one sub-component is a degenerate "spike": a short closed loop
+    -- (start point = end point) from numerical noise where the lane grazes
+    -- the buffer boundary almost tangentially. Such a component can still
+    -- have non-trivial length (so a length filter alone won't catch it) and
+    -- GEOS still reports it as "simple" (so ST_IsSimple won't catch it
+    -- either) — but a real lane-clip fragment is never a closed loop, so
+    -- that's the reliable signature. The single-sided ST_Buffer below
+    -- ('side=left'/'side=right') throws a GEOSBuffer TopologyException
+    -- ("non-noded intersection") on such a spike. Dump to components and
+    -- drop closed/degenerate ones before recombining.
+    LEFT JOIN LATERAL (
+        SELECT ST_Collect(d.geom) AS geom
+        FROM ST_Dump(ST_Intersection(lane_geom, stop_buffer)) d
+        WHERE ST_Length(d.geom) > metres(0.01)
+          AND NOT ST_Equals(ST_StartPoint(d.geom), ST_EndPoint(d.geom))
+    ) cleaned ON TRUE
 ),
 
 valid_lanes AS (
     SELECT *
     FROM clipped_lanes
-    WHERE NOT ST_IsEmpty(geom)
+    WHERE geom IS NOT NULL AND NOT ST_IsEmpty(geom)
 ),
 
 lane_polygons AS (
@@ -1772,6 +1789,12 @@ events AS (
       AND frac > prev_frac
 ),
 split_blades AS (
+    -- The cutting blade must run perpendicular to seg_geom's own local
+    -- direction at the split point, not a fixed axis: a hardcoded vertical
+    -- blade is collinear with (rather than crossing) any seg_geom that
+    -- itself runs roughly north-south at that point, and ST_Split rejects a
+    -- collinear/overlapping splitter ("Splitter line has linear
+    -- intersection with input") rather than a clean point intersection.
     SELECT
         e.junction_id,
         e.fragment_id,
@@ -1780,22 +1803,40 @@ split_blades AS (
         e.group_id,
         ST_MakeLine(
             ST_Translate(
-                ST_LineInterpolatePoint(
-                    e.seg_geom,
-                    GREATEST(0.00001, LEAST(0.99999, e.split_frac_raw))
-                ),
-                0.0, metres(0.1)
+                e.split_pt,
+                metres(0.1) * cos(e.local_azimuth),
+                -metres(0.1) * sin(e.local_azimuth)
             ),
             ST_Translate(
-                ST_LineInterpolatePoint(
-                    e.seg_geom,
-                    GREATEST(0.00001, LEAST(0.99999, e.split_frac_raw))
-                ),
-                0.0, metres(-0.1)
+                e.split_pt,
+                -metres(0.1) * cos(e.local_azimuth),
+                metres(0.1) * sin(e.local_azimuth)
             )
         ) AS blade_geom
-    FROM events e
-    WHERE e.split_frac_raw IS NOT NULL
+    FROM (
+        SELECT
+            e.junction_id,
+            e.fragment_id,
+            e.seg_idx_ccw,
+            e.group_key,
+            e.group_id,
+            ST_LineInterpolatePoint(
+                e.seg_geom,
+                GREATEST(0.00001, LEAST(0.99999, e.split_frac_raw))
+            ) AS split_pt,
+            ST_Azimuth(
+                ST_LineInterpolatePoint(
+                    e.seg_geom,
+                    GREATEST(0.0, LEAST(0.99999, e.split_frac_raw) - 0.00001)
+                ),
+                ST_LineInterpolatePoint(
+                    e.seg_geom,
+                    GREATEST(0.00001, LEAST(1.0, e.split_frac_raw) + 0.00001)
+                )
+            ) AS local_azimuth
+        FROM events e
+        WHERE e.split_frac_raw IS NOT NULL
+    ) e
 ),
 blades_per_seg AS (
     SELECT

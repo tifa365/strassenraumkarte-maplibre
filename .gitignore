@@ -3,9 +3,14 @@ data/osm/*.osm.pbf
 data/osm/*.pbf
 data/parking/**
 !data/parking/.gitkeep
+!data/parking/reference/
+!data/parking/reference/README.md
+!data/parking/reference/upstream/
+!data/parking/reference/upstream/street_parking.py
 render/tiles/**
 !render/tiles/.gitkeep
 !render/tiles/preview.html
+render/parking-sample*/
 
 # Python
 __pycache__/
@@ -17,6 +22,14 @@ __pycache__/
 style/*.qgz.bak*
 *.bak
 style/.*_work/
+# Disposable per-render QGIS project copies (render/xyz_tiles.py); normally
+# removed on exit, but a SIGKILLed render (e.g. an OOM) can leak these.
+style/.render-*.qgs
+# QGIS writes a random-named <id>_styles.db into the working directory on each
+# headless run, plus a symbology database; a staged project copy is scratch too.
+/*_styles.db
+/symbology-style.db
+/_thinned_project_staged.qgs
 
 # Local backups / editor
 backup/
@@ -30,3 +43,7 @@ data/.venv/
 TODO.txt
 todo_from_post_processing.py
 style/lanes.qgz
+
+# Parity-check reference renders and runs
+render/parity-reference/
+render/parity-runs/
