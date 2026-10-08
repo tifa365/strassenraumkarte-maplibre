@@ -68,6 +68,8 @@ UNANTIALIASED_FILLS = {
     "barrier-way-marker-fill",
 }
 DEFAULT_STYLE = ROOT / "web" / "style.json"
+# Every source is derived from OpenStreetMap; MapLibre shows identical strings once.
+OSM_ATTRIBUTION = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 SOURCE_ORDER = {
     # Bottom to top as in each QGIS "layer = N" group (layer tree order reversed):
     # bridge_shade, bridge, railway, path, service, tactile paving,
@@ -586,6 +588,8 @@ def build(style_path: Path) -> None:
             ),
         }
     )
+    for source in style["sources"].values():
+        source["attribution"] = OSM_ATTRIBUTION
     style_path.write_text(json.dumps(style, indent=2) + "\n")
     shown_path = style_path.resolve()
     if shown_path.is_relative_to(ROOT):

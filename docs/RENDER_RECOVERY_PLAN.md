@@ -143,12 +143,12 @@ The installed runtime returned:
 
 ```text
 project_folder: /tmp/strassenraumkarte-review-placeholder
-project_home: /Users/tim/Projekte/strassenraumkarte/style
+project_home: <repo>/style
 icon path: /tmp/strassenraumkarte-review-placeholder/symbols/trees/broadleaved.png
 ```
 
 Restoring the original project filename made `project_folder` resolve to
-`/Users/tim/Projekte/strassenraumkarte/style`.
+`<repo>/style`.
 
 Fix: preserve original project identity after extraction, set the intended home
 directory, and construct expression contexts/path resolvers afterward. Validate

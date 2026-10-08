@@ -47,3 +47,13 @@ style/lanes.qgz
 # Parity-check reference renders and runs
 render/parity-reference/
 render/parity-runs/
+
+# Raw OSM extracts (ODbL data, large) and local render output
+data/osm/*.zip
+data/osm/*.gpkg
+render/full-*/
+render/live-preview/
+
+# Downloaded reference media
+*.webm
+*.mp4

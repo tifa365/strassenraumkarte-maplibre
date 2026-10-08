@@ -45,7 +45,8 @@
         "http://127.0.0.1:3000/landscape_ticks/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "railway_ties": {
       "type": "vector",
@@ -53,7 +54,8 @@
         "http://127.0.0.1:3000/railway_ties/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "highway_hashes": {
       "type": "vector",
@@ -61,7 +63,8 @@
         "http://127.0.0.1:3000/highway_hashes/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "water_body": {
       "type": "vector",
@@ -69,7 +72,8 @@
         "http://127.0.0.1:3000/water_body/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "highway": {
       "type": "vector",
@@ -77,7 +81,8 @@
         "http://127.0.0.1:3000/highway/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "bridge": {
       "type": "vector",
@@ -85,7 +90,8 @@
         "http://127.0.0.1:3000/bridge/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "bridge_shade": {
       "type": "vector",
@@ -93,7 +99,8 @@
         "http://127.0.0.1:3000/bridge_shade/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "landuse": {
       "type": "vector",
@@ -101,7 +108,8 @@
         "http://127.0.0.1:3000/landuse/{z}/{x}/{y}"
       ],
       "minzoom": 9,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "water_body_dissolved": {
       "type": "vector",
@@ -109,7 +117,8 @@
         "http://127.0.0.1:3000/water_body_dissolved/{z}/{x}/{y}"
       ],
       "minzoom": 9,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "waterway_clipped": {
       "type": "vector",
@@ -117,7 +126,8 @@
         "http://127.0.0.1:3000/waterway_clipped/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "highway_area": {
       "type": "vector",
@@ -125,7 +135,8 @@
         "http://127.0.0.1:3000/highway_area/{z}/{x}/{y}"
       ],
       "minzoom": 9,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "building_parts_dissolved_height": {
       "type": "vector",
@@ -133,7 +144,8 @@
         "http://127.0.0.1:3000/building_parts_dissolved_height/{z}/{x}/{y}"
       ],
       "minzoom": 12,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "building": {
       "type": "vector",
@@ -141,7 +153,8 @@
         "http://127.0.0.1:3000/building/{z}/{x}/{y}"
       ],
       "minzoom": 12,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "building_shade": {
       "type": "vector",
@@ -149,7 +162,8 @@
         "http://127.0.0.1:3000/building_shade/{z}/{x}/{y}"
       ],
       "minzoom": 12,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "building_lines": {
       "type": "vector",
@@ -157,7 +171,8 @@
         "http://127.0.0.1:3000/building_lines/{z}/{x}/{y}"
       ],
       "minzoom": 16,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "feature_way": {
       "type": "vector",
@@ -165,7 +180,8 @@
         "http://127.0.0.1:3000/feature_way/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "feature_polygon": {
       "type": "vector",
@@ -173,7 +189,8 @@
         "http://127.0.0.1:3000/feature_polygon/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "playground_node": {
       "type": "vector",
@@ -181,7 +198,8 @@
         "http://127.0.0.1:3000/playground_node/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "playground_way": {
       "type": "vector",
@@ -189,7 +207,8 @@
         "http://127.0.0.1:3000/playground_way/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "playground_polygon": {
       "type": "vector",
@@ -197,7 +216,8 @@
         "http://127.0.0.1:3000/playground_polygon/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "pitch": {
       "type": "vector",
@@ -205,7 +225,8 @@
         "http://127.0.0.1:3000/pitch/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "pitch_markings": {
       "type": "vector",
@@ -213,7 +234,8 @@
         "http://127.0.0.1:3000/pitch_markings/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "landscape_node": {
       "type": "vector",
@@ -221,7 +243,8 @@
         "http://127.0.0.1:3000/landscape_node/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "landscape_way": {
       "type": "vector",
@@ -229,7 +252,8 @@
         "http://127.0.0.1:3000/landscape_way/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "railway_node": {
       "type": "vector",
@@ -237,7 +261,8 @@
         "http://127.0.0.1:3000/railway_node/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "railway_way": {
       "type": "vector",
@@ -245,7 +270,8 @@
         "http://127.0.0.1:3000/railway_way/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "road_marking_polygon": {
       "type": "vector",
@@ -253,7 +279,8 @@
         "http://127.0.0.1:3000/road_marking_polygon/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "road_marking_way": {
       "type": "vector",
@@ -261,7 +288,8 @@
         "http://127.0.0.1:3000/road_marking_way/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "road_marking_sharks_teeth": {
       "type": "vector",
@@ -269,7 +297,8 @@
         "http://127.0.0.1:3000/road_marking_sharks_teeth/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "road_marking_node": {
       "type": "vector",
@@ -277,7 +306,8 @@
         "http://127.0.0.1:3000/road_marking_node/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "tactile_paving": {
       "type": "vector",
@@ -285,7 +315,8 @@
         "http://127.0.0.1:3000/tactile_paving/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "separation": {
       "type": "vector",
@@ -293,7 +324,8 @@
         "http://127.0.0.1:3000/separation/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "highway_service": {
       "type": "vector",
@@ -301,7 +333,8 @@
         "http://127.0.0.1:3000/highway_service/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "tree": {
       "type": "vector",
@@ -309,7 +342,8 @@
         "http://127.0.0.1:3000/tree/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "label_highway": {
       "type": "vector",
@@ -317,7 +351,8 @@
         "http://127.0.0.1:3000/label_highway/{z}/{x}/{y}"
       ],
       "minzoom": 12,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "label_waterway": {
       "type": "vector",
@@ -325,7 +360,8 @@
         "http://127.0.0.1:3000/label_waterway/{z}/{x}/{y}"
       ],
       "minzoom": 11,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "place_node": {
       "type": "vector",
@@ -333,7 +369,8 @@
         "http://127.0.0.1:3000/place_node/{z}/{x}/{y}"
       ],
       "minzoom": 9,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "place_polygon": {
       "type": "vector",
@@ -341,7 +378,8 @@
         "http://127.0.0.1:3000/place_polygon/{z}/{x}/{y}"
       ],
       "minzoom": 9,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "feature_node": {
       "type": "vector",
@@ -349,7 +387,8 @@
         "http://127.0.0.1:3000/feature_node/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "housenumber": {
       "type": "vector",
@@ -357,7 +396,8 @@
         "http://127.0.0.1:3000/housenumber/{z}/{x}/{y}"
       ],
       "minzoom": 17,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "barrier_node": {
       "type": "vector",
@@ -365,7 +405,8 @@
         "http://127.0.0.1:3000/barrier_node/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "barrier_polygon": {
       "type": "vector",
@@ -373,7 +414,8 @@
         "http://127.0.0.1:3000/barrier_polygon/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "barrier_way": {
       "type": "vector",
@@ -381,7 +423,8 @@
         "http://127.0.0.1:3000/barrier_way/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "barrier_way_marker_polygons": {
       "type": "vector",
@@ -389,7 +432,8 @@
         "http://127.0.0.1:3000/barrier_way_marker_polygons/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "parking_cars": {
       "type": "vector",
@@ -397,7 +441,8 @@
         "http://127.0.0.1:3000/parking_cars/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "road_marking_hatch": {
       "type": "vector",
@@ -405,7 +450,8 @@
         "http://127.0.0.1:3000/road_marking_hatch/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "construction_hatch": {
       "type": "vector",
@@ -413,7 +459,8 @@
         "http://127.0.0.1:3000/construction_hatch/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "landuse_texture": {
       "type": "vector",
@@ -421,7 +468,8 @@
         "http://127.0.0.1:3000/landuse_texture/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "building_outline": {
       "type": "vector",
@@ -429,7 +477,8 @@
         "http://127.0.0.1:3000/building_outline/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "highway_area_outline": {
       "type": "vector",
@@ -437,7 +486,8 @@
         "http://127.0.0.1:3000/highway_area_outline/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     },
     "building_height_step": {
       "type": "vector",
@@ -445,7 +495,8 @@
         "http://127.0.0.1:3000/building_height_step/{z}/{x}/{y}"
       ],
       "minzoom": 14,
-      "maxzoom": 20
+      "maxzoom": 20,
+      "attribution": "\u00a9 <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     }
   },
   "sprite": "sprite",
