@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Straßenraumkarte — MapLibre vector port</title>
+  <link rel="icon" href="data:," />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+  <style>
+    body { margin: 0; padding: 0; }
+    #map, .map-group { position: absolute; top: 0; bottom: 0; width: 100%; }
+    .map-group { pointer-events: none; }
+    #info {
+      position: absolute; top: 8px; left: 8px; z-index: 10;
+      background: rgba(255,255,255,0.9); padding: 6px 10px; border-radius: 4px;
+      font: 12px/1.4 -apple-system, sans-serif; max-width: 300px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="info">
+    Straßenraumkarte — verified MapLibre vector subset.<br>
+    <span id="status">Loading style and vector tiles…</span>
+  </div>
+  <script>
+    // QGIS applies a layer's opacity to the *flattened* layer: overlapping tree crowns merge
+    // and the whole layer is faded once. MapLibre has no group opacity, so layers marked with
+    // metadata["strassenraumkarte:group-opacity"] are drawn at full opacity in their own
+    // transparent map canvas, stacked in style order and faded with CSS opacity. Each canvas
+    // gets only its own layers and sources; the first canvas is interactive and drives the
+    // others' cameras. A plain MapLibre client ignores the key and uses the layers' own
+    // (per-feature) opacity as an approximation.
+    const GROUP_KEY = 'strassenraumkarte:group-opacity';
+    const OPACITY_PROPS = { symbol: 'icon-opacity', fill: 'fill-opacity', line: 'line-opacity', circle: 'circle-opacity' };
+    const status = document.getElementById('status');
+    const diagnostics = { loaded: false, idle: false, sourceTypes: [], errors: [] };
+    window.__mapDiagnostics = diagnostics;
+
+    function segments(layers) {
+      // consecutive layers with the same group opacity share a canvas (null = normal)
+      const out = [];
+      for (const layer of layers) {
+        const group = layer.metadata?.[GROUP_KEY] ?? null;
+        const last = out[out.length - 1];
+        if (last && last.group === group) last.layers.push(layer);
+        else out.push({ group, layers: [layer] });
+      }
+      return out;
+    }
+
+    function styleFor(style, segment) {
+      const used = new Set(segment.layers.map(l => l.source).filter(Boolean));
+      const sources = Object.fromEntries(Object.entries(style.sources).filter(([id]) => used.has(id)));
+      const layers = segment.layers.map(l => {
+        if (segment.group === null) return l;
+        const prop = OPACITY_PROPS[l.type];
+        return prop ? { ...l, paint: { ...l.paint, [prop]: 1 } } : l;
+      });
+      return { ...style, sources, layers };
+    }
+
+    fetch('style.json').then(r => r.json()).then(style => {
+      const parts = segments(style.layers);
+      const maps = parts.map((part, index) => {
+        let container = 'map';
+        if (index > 0) {
+          const div = document.createElement('div');
+          div.className = 'map-group';
+          div.id = `map-${index}`;
+          div.style.zIndex = String(index);
+          if (part.group !== null) div.style.opacity = String(part.group);
+          document.getElementById('info').before(div);
+          container = div.id;
+        } else if (part.group !== null) {
+          document.getElementById('map').style.opacity = String(part.group);
+        }
+        return new maplibregl.Map({
+          container,
+          style: styleFor(style, part),
+          center: [13.4, 52.505], // Neukölln reference area
+          zoom: 15,
+          hash: index === 0,
+          interactive: index === 0,
+          attributionControl: index === 0 ? undefined : false,
+          preserveDrawingBuffer: true, // lets canvas.toDataURL() capture the WebGL buffer for screenshots
+        });
+      });
+      const map = maps[0];
+      window.map = map;
+      window.__maps = maps;
+      map.addControl(new maplibregl.NavigationControl());
+      const sync = () => {
+        const camera = { center: map.getCenter(), zoom: map.getZoom(), bearing: map.getBearing(), pitch: map.getPitch() };
+        for (const other of maps.slice(1)) other.jumpTo(camera);
+      };
+      map.on('move', sync);
+      sync();
+
+      let loaded = 0;
+      for (const m of maps) {
+        m.on('load', () => {
+          if (++loaded < maps.length) return;
+          diagnostics.loaded = true;
+          diagnostics.sourceTypes = Object.values(style.sources).map(source => source.type);
+          const vectorOnly = diagnostics.sourceTypes.every(type => type === 'vector');
+          status.textContent = vectorOnly
+            ? 'Vector-only MVT sources loaded; waiting for visible tiles…'
+            : `Unexpected source types: ${diagnostics.sourceTypes.join(', ')}`;
+        });
+        m.on('error', (event) => {
+          const message = String(event.error?.message || event.error || 'unknown MapLibre error');
+          diagnostics.errors.push(message);
+          status.textContent = `MapLibre error: ${message}`;
+          console.error('MapLibre error:', event.error);
+        });
+      }
+      map.on('idle', () => {
+        diagnostics.idle = true;
+        status.textContent = diagnostics.errors.length
+          ? `Loaded with ${diagnostics.errors.length} MapLibre error(s); see console.`
+          : 'Vector-only MVT sources loaded.';
+      });
+    });
+  </script>
+</body>
+</html>
