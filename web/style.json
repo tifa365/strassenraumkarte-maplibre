@@ -170706,7 +170706,8 @@
         "text-font": [
           "Noto Sans Regular"
         ],
-        "text-size": 13.333333
+        "text-size": 13.333333,
+        "visibility": "none"
       },
       "paint": {
         "text-color": [
@@ -170738,6 +170739,9 @@
           "rgba(171,165,216,0.75)"
         ],
         "text-halo-width": 2.666667
+      },
+      "metadata": {
+        "strassenraumkarte:hidden": "waterway names left out on request (2026-10-08)"
       }
     },
     {
